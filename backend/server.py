@@ -23,6 +23,7 @@ db = client[os.environ['DB_NAME']]
 
 # Emergent LLM setup
 EMERGENT_LLM_KEY = os.environ['EMERGENT_LLM_KEY']
+OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
 
 # Create the main app
 app = FastAPI()
@@ -1530,10 +1531,10 @@ Your goal is to give the technician EVERYTHING they need to diagnose and repair 
     
     # Initialize LlmChat with enhanced prompt
     chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
+        api_key=OPENAI_API_KEY,
         session_id=conversation_id,
         system_message=system_prompt
-    ).with_model("openai", "gpt-4o")
+    ).with_model("openai", "gpt-5.2")
     
     # Get AI response
     try:
