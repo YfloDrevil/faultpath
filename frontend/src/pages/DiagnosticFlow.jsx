@@ -108,7 +108,139 @@ const DiagnosticFlow = () => {
   };
 
   const startDiagnostic = () => {
+    // Filter and adjust questions based on equipment details
+    if (flow && equipmentDetails.fuel_type) {
+      const filteredFlow = adjustFlowForFuelType(flow, equipmentDetails.fuel_type);
+      setFlow(filteredFlow);
+    }
     setShowEquipmentForm(false);
+  };
+
+  const adjustFlowForFuelType = (originalFlow, fuelType) => {
+    // For diesel vehicles, modify crank_no_start flow
+    if (originalFlow.title === "Crank No Start" && fuelType === 'diesel') {
+      return {
+        ...originalFlow,
+        questions: [
+          {
+            "id": "q1",
+            "question": "What happens when you turn the key to start? (Diesel Engine)",
+            "options": [
+              {"value": "cranks", "label": "Engine cranks but won't start", "next": "q2_diesel"},
+              {"value": "slow_crank", "label": "Cranks slowly", "diagnosis": "battery_diesel"},
+              {"value": "no_crank", "label": "No crank at all", "diagnosis": "starting_system"}
+            ]
+          },
+          {
+            "id": "q2_diesel",
+            "question": "Can you see white/gray smoke from exhaust when cranking?",
+            "options": [
+              {"value": "yes", "label": "Yes - smoke present", "diagnosis": "glow_plugs_diesel"},
+              {"value": "no", "label": "No smoke at all", "next": "q3_diesel"}
+            ]
+          },
+          {
+            "id": "q3_diesel",
+            "question": "Have you checked the fuel system?",
+            "options": [
+              {"value": "fuel_ok", "label": "Fuel getting to injectors", "diagnosis": "compression_diesel"},
+              {"value": "no_fuel", "label": "No fuel at injectors", "diagnosis": "fuel_system_diesel"}
+            ]
+          }
+        ],
+        diagnoses: {
+          ...originalFlow.diagnoses,
+          "battery_diesel": {
+            "title": "Weak Battery (Diesel)",
+            "probability": "HIGH",
+            "causes": ["Weak battery - diesels need high cranking power", "Bad battery cables", "Corroded terminals", "Bad alternator"],
+            "tests": [
+              "Test battery voltage: Should be 12.6V minimum",
+              "Load test battery: Should maintain 9.6V under load",
+              "Diesel engines need 400-600 CCA (Cold Cranking Amps)",
+              "Check battery cables for corrosion",
+              "Test alternator output: 13.8-14.5V at 2000 RPM"
+            ],
+            "repair": [
+              "Charge battery fully",
+              "Clean battery terminals with wire brush",
+              "Load test - replace if fails (diesel batteries $150-300)",
+              "Replace battery cables if corroded ($30-80)",
+              "Test alternator output after battery replacement"
+            ],
+            "parts": ["Heavy duty diesel battery ($150-300)", "Battery cables ($30-80)", "Terminals ($10-20)"],
+            "time": "30 minutes - 1 hour"
+          },
+          "glow_plugs_diesel": {
+            "title": "Glow Plug System Failure",
+            "probability": "HIGH",
+            "causes": ["Failed glow plugs", "Bad glow plug relay/module", "Broken glow plug wire", "Faulty glow plug controller"],
+            "tests": [
+              "Test glow plug operation: Should see glow plug light on dash for 5-30 seconds",
+              "Check glow plug resistance: 0.5-2 ohms per plug (cold)",
+              "Test voltage at glow plugs: Should be 11-12V when activated",
+              "Check glow plug relay: Should click when key turned on",
+              "Cold engine temp increases glow plug time"
+            ],
+            "repair": [
+              "Replace failed glow plugs ($20-50 each, 2-4 hours for all)",
+              "Replace glow plug relay/module ($50-150, 30 minutes)",
+              "Repair broken glow plug wiring",
+              "Test each cylinder: All glow plugs should heat up",
+              "Clear codes and test start in cold conditions"
+            ],
+            "parts": ["Glow plugs ($20-50 each)", "Glow plug relay ($50-150)", "Controller module ($100-300)"],
+            "time": "1-4 hours"
+          },
+          "fuel_system_diesel": {
+            "title": "Diesel Fuel System Issue",
+            "probability": "CRITICAL",
+            "causes": ["Air in fuel system", "Clogged fuel filter", "Failed lift pump", "Bad injector pump", "Water in fuel"],
+            "tests": [
+              "Check for air leaks in fuel lines (common diesel issue)",
+              "Test fuel pressure: Should be 5-15 PSI at lift pump",
+              "Check fuel filter for water/contamination",
+              "Bleed air from fuel system at filter and injector pump",
+              "Check for diesel in fuel tank (not petrol!)",
+              "Test injector pump operation"
+            ],
+            "repair": [
+              "Bleed air from fuel system (start at filter, work to injector pump)",
+              "Replace fuel filter ($20-50, 30 minutes)",
+              "Fix any air leaks in fuel lines",
+              "Replace lift pump if no pressure ($150-400, 2-3 hours)",
+              "Clean/replace water separator",
+              "Prime fuel system: Crank 10-15 seconds, wait, repeat"
+            ],
+            "parts": ["Fuel filter ($20-50)", "Lift pump ($150-400)", "Fuel lines ($30-100)"],
+            "time": "30 minutes - 4 hours"
+          },
+          "compression_diesel": {
+            "title": "Low Compression (Diesel)",
+            "probability": "HIGH",
+            "causes": ["Worn piston rings", "Blown head gasket", "Worn cylinder walls", "Valve timing off", "Broken timing belt"],
+            "tests": [
+              "Compression test: Diesel should be 350-500 PSI (much higher than petrol!)",
+              "All cylinders should be within 10% of each other",
+              "Check for white smoke: Indicates coolant in combustion",
+              "Check for blue smoke: Indicates oil burning",
+              "Verify timing belt/chain not broken or jumped"
+            ],
+            "repair": [
+              "If one cylinder low: Check valves, head gasket",
+              "If all cylinders low: Worn rings, rebuild needed",
+              "Replace head gasket if coolant in cylinder ($500-1500, 6-10 hours)",
+              "Engine rebuild if severely worn ($3000-8000, 20-40 hours)",
+              "Check/replace timing belt if jumped ($300-800, 4-8 hours)"
+            ],
+            "parts": ["Head gasket kit ($150-400)", "Timing belt kit ($200-500)", "Engine rebuild ($3000-8000)"],
+            "time": "4-40 hours depending on issue"
+          }
+        }
+      };
+    }
+    
+    return originalFlow;
   };
 
   const handleAnswer = (option) => {
