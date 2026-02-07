@@ -5,10 +5,24 @@ import { ArrowLeft, MessageSquare, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+const CATEGORIES = [
+  'Automotive',
+  'Heavy Diesel',
+  'Mobile Plant',
+  'Fixed Plant',
+  'HVAC',
+  'Electrical',
+  'Plumbing',
+  'General'
+];
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -16,8 +30,17 @@ const ChatPage = () => {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [equipmentName, setEquipmentName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState({
+    equipment_name: '',
+    category: '',
+    vin_number: '',
+    year: '',
+    make: '',
+    model: '',
+    symptoms: '',
+    fault_codes: '',
+  });
 
   useEffect(() => {
     fetchConversations();
@@ -35,18 +58,16 @@ const ChatPage = () => {
   };
 
   const handleCreateConversation = async () => {
-    if (!equipmentName.trim()) {
+    if (!formData.equipment_name.trim()) {
       toast({ title: 'Error', description: 'Please enter equipment name', variant: 'destructive' });
       return;
     }
 
     setCreating(true);
     try {
-      const res = await axios.post(`${API}/conversations`, {
-        equipment_name: equipmentName,
-      });
+      const res = await axios.post(`${API}/conversations`, formData);
 
-      toast({ title: 'Success', description: 'Conversation started' });
+      toast({ title: 'Success', description: 'Diagnostic session started' });
       navigate(`/chat/${res.data.id}`);
     } catch (error) {
       console.error('Error creating conversation:', error);
@@ -84,40 +105,130 @@ const ChatPage = () => {
             </button>
             <div className="text-center flex-1">
               <h1 className="text-2xl font-bold text-white">Diagnostic Chat</h1>
-              <p className="text-sm text-slate-400">AI-powered troubleshooting</p>
+              <p className="text-sm text-slate-400">Professional troubleshooting assistant</p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button data-testid="new-chat-btn" className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="w-4 h-4 mr-2" />
-                  New Chat
+                  New Diagnosis
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-slate-800 border-slate-700 text-white">
+              <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Start New Diagnosis</DialogTitle>
+                  <DialogTitle className="text-xl">Start New Diagnostic Session</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="space-y-4 mt-4">
+                  {/* Equipment Name */}
                   <div>
-                    <label className="text-sm text-slate-400 mb-2 block">
-                      What equipment are you diagnosing?
-                    </label>
+                    <Label className="text-slate-300">Equipment / Vehicle Name *</Label>
                     <Input
                       data-testid="equipment-name-input"
-                      value={equipmentName}
-                      onChange={(e) => setEquipmentName(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleCreateConversation()}
-                      className="bg-slate-900 border-slate-700 text-white"
-                      placeholder="e.g., Terex Franna MAC25 Crane"
+                      value={formData.equipment_name}
+                      onChange={(e) => setFormData({ ...formData, equipment_name: e.target.value })}
+                      className="bg-slate-900 border-slate-700 text-white mt-2"
+                      placeholder="e.g., 2015 Ford F-150, Caterpillar 320D Excavator"
                     />
                   </div>
+
+                  {/* Category */}
+                  <div>
+                    <Label className="text-slate-300">Category</Label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    >
+                      <SelectTrigger data-testid="category-select" className="bg-slate-900 border-slate-700 text-white mt-2">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700">
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat} className="text-white hover:bg-slate-700">
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* VIN Number */}
+                  <div>
+                    <Label className="text-slate-300">VIN Number</Label>
+                    <Input
+                      data-testid="vin-input"
+                      value={formData.vin_number}
+                      onChange={(e) => setFormData({ ...formData, vin_number: e.target.value.toUpperCase() })}
+                      className="bg-slate-900 border-slate-700 text-white mt-2"
+                      placeholder="17-digit VIN"
+                      maxLength={17}
+                    />
+                  </div>
+
+                  {/* Year, Make, Model */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-slate-300">Year</Label>
+                      <Input
+                        data-testid="year-input"
+                        value={formData.year}
+                        onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                        className="bg-slate-900 border-slate-700 text-white mt-2"
+                        placeholder="2020"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-slate-300">Make</Label>
+                      <Input
+                        data-testid="make-input"
+                        value={formData.make}
+                        onChange={(e) => setFormData({ ...formData, make: e.target.value })}
+                        className="bg-slate-900 border-slate-700 text-white mt-2"
+                        placeholder="Ford"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-slate-300">Model</Label>
+                      <Input
+                        data-testid="model-input"
+                        value={formData.model}
+                        onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                        className="bg-slate-900 border-slate-700 text-white mt-2"
+                        placeholder="F-150"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fault Codes */}
+                  <div>
+                    <Label className="text-slate-300">Fault Codes (if any)</Label>
+                    <Input
+                      data-testid="fault-codes-input"
+                      value={formData.fault_codes}
+                      onChange={(e) => setFormData({ ...formData, fault_codes: e.target.value.toUpperCase() })}
+                      className="bg-slate-900 border-slate-700 text-white mt-2"
+                      placeholder="e.g., P0420, P0171, C1234"
+                    />
+                  </div>
+
+                  {/* Symptoms */}
+                  <div>
+                    <Label className="text-slate-300">Symptoms / Issues</Label>
+                    <Textarea
+                      data-testid="symptoms-input"
+                      value={formData.symptoms}
+                      onChange={(e) => setFormData({ ...formData, symptoms: e.target.value })}
+                      className="bg-slate-900 border-slate-700 text-white mt-2 min-h-[100px]"
+                      placeholder="Describe the problem in detail... e.g., Engine cranks but won't start, makes clicking noise, check engine light on"
+                    />
+                  </div>
+
                   <Button
                     data-testid="start-conversation-btn"
                     onClick={handleCreateConversation}
                     disabled={creating}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    className="w-full bg-blue-600 hover:bg-blue-700 py-6"
                   >
-                    {creating ? 'Starting...' : 'Start Conversation'}
+                    {creating ? 'Starting Session...' : 'Start Diagnostic Session'}
                   </Button>
                 </div>
               </DialogContent>
@@ -135,8 +246,8 @@ const ChatPage = () => {
         ) : conversations.length === 0 ? (
           <div className="text-center py-20">
             <MessageSquare className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-300 mb-2">No conversations yet</h3>
-            <p className="text-slate-400 mb-6">Start your first diagnostic conversation</p>
+            <h3 className="text-xl font-semibold text-slate-300 mb-2">No diagnostic sessions yet</h3>
+            <p className="text-slate-400 mb-6">Start your first professional diagnostic session</p>
             <Button
               data-testid="start-first-chat-btn"
               onClick={() => setDialogOpen(true)}
@@ -148,7 +259,7 @@ const ChatPage = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-white mb-6">Your Conversations</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">Your Diagnostic Sessions</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {conversations.map((conv) => (
                 <button
@@ -165,11 +276,25 @@ const ChatPage = () => {
                       <h3 className="text-lg font-semibold text-white mb-1 truncate">
                         {conv.equipment_name}
                       </h3>
-                      <p className="text-sm text-slate-400">{formatDate(conv.updated_at)}</p>
+                      {conv.category && (
+                        <p className="text-sm text-blue-400 mb-1">{conv.category}</p>
+                      )}
+                      {(conv.year || conv.make || conv.model) && (
+                        <p className="text-sm text-slate-400 mb-1">
+                          {[conv.year, conv.make, conv.model].filter(Boolean).join(' ')}
+                        </p>
+                      )}
+                      {conv.fault_codes && (
+                        <p className="text-sm text-orange-400 mb-1">Codes: {conv.fault_codes}</p>
+                      )}
+                      <p className="text-xs text-slate-500 mt-2">{formatDate(conv.updated_at)}</p>
                     </div>
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+        )}
             </div>
           </div>
         )}
