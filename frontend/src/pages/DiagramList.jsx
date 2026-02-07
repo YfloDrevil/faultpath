@@ -78,11 +78,13 @@ const DiagramList = () => {
         title: formData.title,
         description: formData.description,
         image_data: formData.image_data,
+        file_name: formData.file_name,
+        file_type: formData.file_type,
       });
 
       toast({ title: 'Success', description: 'Diagram uploaded successfully' });
       setUploadOpen(false);
-      setFormData({ title: '', description: '', image_data: null });
+      setFormData({ title: '', description: '', image_data: null, file_name: '', file_type: '' });
       fetchData();
     } catch (error) {
       console.error('Error uploading diagram:', error);
