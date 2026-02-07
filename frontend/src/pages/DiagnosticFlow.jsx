@@ -865,6 +865,7 @@ Please provide detailed technical assistance based on my specific equipment and 
               {currentQuestion.options.map((option, idx) => (
                 <Button
                   key={idx}
+                  data-testid={`diagnostic-option-${currentQuestion.id}-${option.value}`}
                   onClick={() => handleAnswer(option)}
                   className="w-full justify-start text-left h-auto py-4 px-6 bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 hover:border-blue-500"
                 >
@@ -1048,12 +1049,14 @@ Please provide detailed technical assistance based on my specific equipment and 
 
               <div className="flex gap-4">
                 <Button
+                  data-testid="restart-diagnostic-btn"
                   onClick={restart}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Start Over
                 </Button>
                 <Button
+                  data-testid="choose-flow-btn"
                   onClick={() => navigate('/quick-diagnostics')}
                   variant="outline"
                   className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
