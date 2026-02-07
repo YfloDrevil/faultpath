@@ -13,18 +13,41 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const EQUIPMENT_TYPES = [
+  // Light Vehicles
+  'Toyota (Car/Truck/SUV)',
+  'Ford (Car/Truck/SUV)',
+  'Isuzu (Truck/Commercial)',
+  'Nissan (Car/Truck/SUV)',
+  'Hino (Commercial Truck)',
+  'Kia (Car/SUV)',
+  'Hyundai (Car/SUV)',
+  'Mitsubishi (Car/Truck)',
+  'Mazda (Car/SUV)',
+  'Honda (Car/SUV)',
+  'Subaru (Car/SUV)',
+  'Suzuki (Car)',
+  'Scania (Heavy Truck)',
+  'Volvo (Truck/Car)',
+  'MAN (Commercial Truck)',
+  'Mercedes-Benz (Car/Truck)',
+  'Chevrolet/GM (Car/Truck)',
+  'Dodge/RAM (Truck)',
+  'Other Car/Light Vehicle',
+  // Heavy Equipment
+  'Caterpillar Equipment',
+  'Komatsu Equipment',
   'Bobcat/Skid Steer',
-  'Excavator',
+  'Excavator (Any Brand)',
   'Mobile Crusher',
-  'Forklift',
+  'Forklift (Any Brand)',
   'Franna Crane',
-  'Truck',
   'Telehandler',
-  'Generator',
+  'Generator (Any Brand)',
   'Loader',
   'Backhoe',
   'Dozer',
   'Grader',
+  'Compressor',
   'Other Heavy Equipment'
 ];
 
