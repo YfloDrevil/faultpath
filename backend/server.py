@@ -225,14 +225,7 @@ async def send_message(conversation_id: str, message: MessageCreate):
     user_doc['timestamp'] = user_doc['timestamp'].isoformat()
     await db.messages.insert_one(user_doc)
     
-    # Get conversation history
-    history = await db.messages.find(
-        {"conversation_id": conversation_id},
-        {"_id": 0}
-    ).sort("timestamp", 1).to_list(100)
-    
-    # Build messages for AI
-    ai_messages = []
+    # System prompt for FaultPath
     system_prompt = """You are FaultPath, an expert diagnostic assistant for mechanics and technicians. 
     You provide systematic, step-by-step troubleshooting guidance for equipment failures.
     
@@ -254,31 +247,21 @@ async def send_message(conversation_id: str, message: MessageCreate):
     
     Be practical, thorough, and safety-conscious."""
     
-    ai_messages.append({"role": "system", "content": system_prompt})
-    
-    for msg in history[:-1]:  # Exclude the message we just added
-        ai_messages.append({
-            "role": msg["role"],
-            "content": msg["content"]
-        })
-    
-    # Add current user message
-    user_content = message.content
-    if message.images:
-        user_content += "\n\n[User has uploaded images for analysis]"
-    
-    ai_messages.append({"role": "user", "content": user_content})
+    # Initialize LlmChat with the conversation
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=conversation_id,
+        system_message=system_prompt
+    ).with_model("openai", "gpt-4o")
     
     # Get AI response
     try:
-        response = llm.chat.completions.create(
-            model="gpt-4o",
-            messages=ai_messages,
-            temperature=0.7,
-            max_tokens=1500
-        )
+        user_content = message.content
+        if message.images:
+            user_content += "\n\n[User has uploaded images for analysis]"
         
-        assistant_content = response.choices[0].message.content
+        user_message = UserMessage(text=user_content)
+        assistant_content = await chat.send_message(user_message)
     except Exception as e:
         logger.error(f"AI error: {e}")
         assistant_content = "I apologize, but I'm having trouble processing your request. Please try again or rephrase your question."
