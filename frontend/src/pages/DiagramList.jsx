@@ -165,17 +165,36 @@ const DiagramList = () => {
                     <label className="text-sm text-slate-400 mb-2 block">Image</label>
                     <div className="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center hover:border-slate-600 transition-colors">
                       {formData.image_data ? (
+                      isPdfSource(formData.image_data, formData.file_type) ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <FileText className="w-12 h-12 text-blue-400" />
+                          <div className="text-slate-200 text-sm">
+                            {formData.file_name || 'PDF diagram ready to upload'}
+                          </div>
+                          <Button
+                            data-testid="remove-uploaded-file-btn"
+                            type="button"
+                            onClick={() => setFormData({ ...formData, image_data: null, file_name: '', file_type: '' })}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Remove
+                          </Button>
+                        </div>
+                      ) : (
                         <div className="relative">
                           <img src={formData.image_data} alt="Preview" className="max-h-48 mx-auto rounded" />
                           <Button
+                            data-testid="remove-uploaded-image-btn"
                             type="button"
-                            onClick={() => setFormData({ ...formData, image_data: null })}
+                            onClick={() => setFormData({ ...formData, image_data: null, file_name: '', file_type: '' })}
                             className="mt-4 bg-red-600 hover:bg-red-700"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Remove
                           </Button>
                         </div>
+                      )
                       ) : (
                         <label className="cursor-pointer">
                           <ImageIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
@@ -183,7 +202,7 @@ const DiagramList = () => {
                           <input
                             data-testid="diagram-image-input"
                             type="file"
-                            accept="image/*"
+                          accept="image/*,.pdf"
                             onChange={handleImageUpload}
                             className="hidden"
                           />
