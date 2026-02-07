@@ -133,10 +133,11 @@ const DiagnosticFlow = () => {
   };
 
   const startDiagnostic = () => {
-    // Filter and adjust questions based on equipment details
-    if (flow && equipmentDetails.fuel_type) {
-      const filteredFlow = adjustFlowForFuelType(flow, equipmentDetails.fuel_type);
-      setFlow(filteredFlow);
+    if (flow) {
+      let updatedFlow = adjustFlowForFuelType(flow, equipmentDetails.fuel_type);
+      updatedFlow = applyBrandSpecificAdjustments(updatedFlow, equipmentDetails);
+      setFlow(updatedFlow);
+      setCurrentQuestionId(updatedFlow.questions[0].id);
     }
     setShowEquipmentForm(false);
   };
