@@ -8,6 +8,7 @@ import ChatPage from '@/pages/ChatPage';
 import ConversationPage from '@/pages/ConversationPage';
 import QuickDiagnostics from '@/pages/QuickDiagnostics';
 import DiagnosticFlow from '@/pages/DiagnosticFlow';
+import TechnicalReference from '@/pages/TechnicalReference';
 import { Toaster } from '@/components/ui/toaster';
 import OfflineIndicator from '@/components/OfflineIndicator';
 
@@ -18,6 +19,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/reference-diagrams" element={<ReferenceDiagrams />} />
         <Route path="/diagrams/:categoryId" element={<DiagramList />} />
+        <Route path="/technical-reference" element={<TechnicalReference />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/chat/:conversationId" element={<ConversationPage />} />
         <Route path="/quick-diagnostics" element={<QuickDiagnostics />} />
