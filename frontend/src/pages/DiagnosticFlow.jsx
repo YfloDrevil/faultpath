@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, CheckCircle2, AlertTriangle, Wrench, Clock, DollarSign, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertTriangle, Wrench, Clock, DollarSign, Upload, Image as ImageIcon, X, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
