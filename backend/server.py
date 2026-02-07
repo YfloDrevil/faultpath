@@ -1081,15 +1081,15 @@ async def init_default_data():
         categories = [
             # Wiring Diagrams
             {"id": str(uuid.uuid4()), "name": "Automotive", "icon": "car", "color": "#3B82F6", 
-             "diagram_type": "wiring", "count": 3, "description": "Engine, transmission, brakes"},
+             "diagram_type": "wiring", "count": 0, "description": "Engine, transmission, brakes"},
             {"id": str(uuid.uuid4()), "name": "Electrical", "icon": "zap", "color": "#F97316", 
-             "diagram_type": "wiring", "count": 3, "description": "3 diagrams"},
+             "diagram_type": "wiring", "count": 0, "description": "Electrical systems"},
             {"id": str(uuid.uuid4()), "name": "HVAC", "icon": "wind", "color": "#14B8A6", 
-             "diagram_type": "wiring", "count": 3, "description": "3 diagrams"},
+             "diagram_type": "wiring", "count": 0, "description": "Heating & cooling"},
             {"id": str(uuid.uuid4()), "name": "Plumbing", "icon": "droplet", "color": "#A855F7", 
-             "diagram_type": "wiring", "count": 2, "description": "2 diagrams"},
+             "diagram_type": "wiring", "count": 0, "description": "Plumbing systems"},
             {"id": str(uuid.uuid4()), "name": "General", "icon": "wrench", "color": "#6B7280", 
-             "diagram_type": "wiring", "count": 2, "description": "2 diagrams"},
+             "diagram_type": "wiring", "count": 0, "description": "General repairs"},
             # Equipment & Parts
             {"id": str(uuid.uuid4()), "name": "Fixed Plant", "icon": "factory", "color": "#10B981", 
              "diagram_type": "equipment", "count": 0, "description": "Generators, compressors, pumps"},
@@ -1099,7 +1099,169 @@ async def init_default_data():
              "diagram_type": "equipment", "count": 0, "description": "Engine systems and components"},
         ]
         await db.categories.insert_many(categories)
-        logger.info("Default categories initialized")
+        
+        # Add sample reference guides
+        auto_cat = next(c for c in categories if c["name"] == "Automotive")
+        elec_cat = next(c for c in categories if c["name"] == "Electrical")
+        
+        sample_diagrams = [
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": auto_cat["id"],
+                "title": "OBD-II Diagnostic Trouble Code Reference",
+                "description": """Common OBD-II Codes Quick Reference:
+
+P0XXX - Powertrain Codes
+• P0030-P0061: O2 Sensor Heater Circuits
+• P0100-P0199: Fuel & Air Metering
+• P0171: System Too Lean (Bank 1)
+• P0172: System Too Rich (Bank 1)
+• P0300-P0312: Misfire Codes
+• P0420-P0434: Catalyst System
+• P0500-P0599: Vehicle Speed & Idle Control
+
+P1XXX - Manufacturer Specific
+P2XXX - Powertrain (Fuel, Ignition)
+P3XXX - Powertrain (Ignition, Misfire)
+
+C0XXX - Chassis Codes
+B0XXX - Body Codes  
+U0XXX - Network Communication Codes
+
+Testing Procedures:
+1. Connect OBD-II scanner
+2. Record all codes AND freeze frame data
+3. Clear codes only after repairs
+4. Test drive and rescan""",
+                "image_data": None,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": auto_cat["id"],
+                "title": "Fuel System Pressure Specifications",
+                "description": """Common Fuel Pressure Specifications:
+
+**Port Fuel Injection:**
+• Most vehicles: 55-65 PSI
+• Honda/Acura: 38-46 PSI
+• GM (older): 41-47 PSI
+• Ford: 30-45 PSI (depends on system)
+
+**Direct Injection:**
+• Low pressure: 50-80 PSI
+• High pressure: 500-2000+ PSI
+
+**Testing Procedure:**
+1. Install fuel pressure gauge at test port
+2. Key ON, engine OFF: Note pressure
+3. Start engine: Pressure should increase slightly
+4. Rev to 2000 RPM: Should maintain pressure
+5. Snap throttle: Watch for pressure drop
+
+**Acceptable Values:**
+• Key on: Within 5 PSI of spec
+• Running: Within 3 PSI of spec
+• No drop >5 PSI when throttle snapped
+• Hold pressure for 5 min after key off""",
+                "image_data": None,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": elec_cat["id"],
+                "title": "Voltage Drop Testing Guide",
+                "description": """Voltage Drop Testing Specifications:
+
+**Maximum Acceptable Voltage Drops:**
+• Ground circuits: 0.2V maximum
+• Power circuits: 0.4V maximum  
+• Starter circuit: 0.5V maximum
+
+**Testing Procedure:**
+1. Set multimeter to DC volts (20V scale)
+2. Connect black lead to battery negative
+3. Connect red lead to component ground
+4. Activate circuit/component
+5. Read voltage drop
+
+**Common Test Points:**
+• Battery negative to engine block: <0.1V
+• Battery negative to body ground: <0.1V
+• Battery positive to starter: <0.5V
+• Fuse to component: <0.2V
+• Relay contacts: <0.1V
+
+**High Resistance Indicators:**
+• Voltage drop >spec = high resistance
+• Heat at connection point
+• Corrosion visible
+• Loose/damaged terminals
+
+**Repair:**
+• Clean connections with wire brush
+• Apply dielectric grease
+• Replace damaged wires
+• Ensure tight connections""",
+                "image_data": None,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": auto_cat["id"],
+                "title": "Sensor Testing Quick Reference",
+                "description": """Common Sensor Specifications:
+
+**Oxygen Sensors (O2):**
+• Warm: Cycles 0.1-0.9V every 1-3 seconds
+• Cold: Fixed voltage ~0.45V
+• Heater circuit: 2-10 ohms
+• Response time: <100ms
+
+**MAF Sensor (Mass Air Flow):**
+• Key on: 0.5-0.8V
+• Idle: 1.5-2.5V
+• 2000 RPM: 2.5-4.0V
+• Resistance: Check service manual
+
+**MAP Sensor (Manifold Absolute Pressure):**
+• Key on, engine off: 4.5-4.8V (1 bar)
+• Idle: 1.0-2.0V (depends on elevation)
+• WOT: 4.5V
+
+**TPS (Throttle Position Sensor):**
+• Closed throttle: 0.5-0.9V
+• Wide open: 4.5-5.0V
+• Smooth sweep when opening
+• No glitches or dead spots
+
+**CKP/CMP (Crank/Cam Position):**
+• AC voltage: 0.5-2.0V AC
+• Resistance: 200-900 ohms typical
+• Gap: 0.020-0.050 inches
+
+**Coolant Temperature Sensor:**
+• Cold (70°F): 2000-3000 ohms
+• Warm (200°F): 200-400 ohms
+• Test with thermometer + ohmmeter""",
+                "image_data": None,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+        ]
+        
+        await db.diagrams.insert_many(sample_diagrams)
+        
+        # Update category counts
+        await db.categories.update_one(
+            {"id": auto_cat["id"]},
+            {"$set": {"count": 3}}
+        )
+        await db.categories.update_one(
+            {"id": elec_cat["id"]},
+            {"$set": {"count": 1}}
+        )
+        
+        logger.info("Default categories and sample diagrams initialized")
 
 # API Routes
 @api_router.get("/")
