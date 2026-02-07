@@ -736,7 +736,7 @@ Please provide detailed technical assistance based on my specific equipment and 
               <div>
                 <Label className="text-slate-300">VIN / Serial Number (Optional)</Label>
                 <Input
-                    data-testid="diagnostic-vin-input"
+                  data-testid="diagnostic-vin-input"
                   value={equipmentDetails.vin}
                   onChange={(e) => setEquipmentDetails({...equipmentDetails, vin: e.target.value.toUpperCase()})}
                   className="bg-slate-900 border-slate-700 text-white mt-2"
@@ -755,6 +755,7 @@ Please provide detailed technical assistance based on my specific equipment and 
                         <div key={idx} className="relative group">
                           <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-24 object-cover rounded" />
                           <button
+                            data-testid={`remove-photo-btn-${idx}`}
                             onClick={() => removeImage(idx)}
                             className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
