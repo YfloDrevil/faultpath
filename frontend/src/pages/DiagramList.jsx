@@ -198,7 +198,7 @@ const DiagramList = () => {
                       ) : (
                         <label className="cursor-pointer">
                           <ImageIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                          <p className="text-slate-400 mb-2">Click to upload image</p>
+                        <p className="text-slate-400 mb-2">Click to upload image or PDF</p>
                           <input
                             data-testid="diagram-image-input"
                             type="file"
