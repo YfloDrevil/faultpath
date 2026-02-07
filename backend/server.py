@@ -1328,6 +1328,8 @@ async def send_message(conversation_id: str, message: MessageCreate):
         context_parts.append(f"Equipment: {conv.get('equipment_name', 'Unknown')}")
         if conv.get('category'):
             context_parts.append(f"Category: {conv['category']}")
+        if conv.get('fuel_type'):
+            context_parts.append(f"Fuel Type: {conv['fuel_type']}")
         if conv.get('vin_number'):
             context_parts.append(f"VIN: {conv['vin_number']}")
         if conv.get('year'):
