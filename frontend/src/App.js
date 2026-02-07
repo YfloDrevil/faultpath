@@ -9,6 +9,7 @@ import ConversationPage from '@/pages/ConversationPage';
 import QuickDiagnostics from '@/pages/QuickDiagnostics';
 import DiagnosticFlow from '@/pages/DiagnosticFlow';
 import { Toaster } from '@/components/ui/toaster';
+import OfflineIndicator from '@/components/OfflineIndicator';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/quick-diagnostics/:flowId" element={<DiagnosticFlow />} />
       </Routes>
       <Toaster />
+      <OfflineIndicator />
     </BrowserRouter>
   );
 }
