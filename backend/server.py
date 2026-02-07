@@ -28,6 +28,676 @@ EMERGENT_LLM_KEY = os.getenv('EMERGENT_LLM_KEY', 'sk-emergent-01a98B2D539FfF44dC
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Pre-built diagnostic flows
+DIAGNOSTIC_FLOWS = {
+    "crank_no_start": {
+        "title": "Crank No Start",
+        "category": "Automotive",
+        "description": "Engine cranks but won't start",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "Do you have spark at the spark plugs?",
+                "options": [
+                    {"value": "yes", "label": "Yes - spark present", "next": "q2"},
+                    {"value": "no", "label": "No spark", "diagnosis": "ignition_system"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "What is the fuel pressure reading?",
+                "options": [
+                    {"value": "normal", "label": "Normal pressure (55-65 PSI)", "next": "q3"},
+                    {"value": "low", "label": "Low pressure (<40 PSI)", "diagnosis": "fuel_pressure"},
+                    {"value": "zero", "label": "Zero pressure", "diagnosis": "fuel_pump"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "Can you hear the fuel pump prime when key is turned on?",
+                "options": [
+                    {"value": "yes", "label": "Yes - 2 second hum", "next": "q4"},
+                    {"value": "no", "label": "No sound", "diagnosis": "fuel_pump_electrical"}
+                ]
+            },
+            {
+                "id": "q4",
+                "question": "What color is the spark plug(s)?",
+                "options": [
+                    {"value": "tan", "label": "Tan/light brown - normal", "diagnosis": "compression_timing"},
+                    {"value": "wet", "label": "Wet with fuel", "diagnosis": "flooded_engine"},
+                    {"value": "black", "label": "Black/sooty", "diagnosis": "rich_mixture"},
+                    {"value": "white", "label": "White/ashy", "diagnosis": "lean_mixture"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "ignition_system": {
+                "title": "Ignition System Failure",
+                "probability": "HIGH",
+                "causes": [
+                    "Faulty ignition coil(s)",
+                    "Bad crankshaft position sensor (CKP)",
+                    "Failed ignition module/PCM",
+                    "Broken timing belt/chain",
+                    "Bad camshaft position sensor (CMP)"
+                ],
+                "tests": [
+                    "Check CKP sensor resistance: 200-900 ohms typical",
+                    "Check CMP sensor resistance: 200-900 ohms typical",
+                    "Test ignition coil primary: 0.4-2 ohms, secondary: 6,000-30,000 ohms",
+                    "Check for RPM signal on scan tool while cranking",
+                    "Verify timing belt/chain alignment with timing marks"
+                ],
+                "repair": [
+                    "Replace faulty CKP sensor if resistance out of spec",
+                    "Replace ignition coils if primary/secondary resistance out of spec",
+                    "Replace timing belt/chain if jumped or broken",
+                    "Clear codes and verify repair with test drive"
+                ],
+                "parts": ["CKP sensor ($50-150)", "Ignition coils ($40-200 each)", "Timing belt kit ($150-400)"],
+                "time": "1-4 hours depending on issue"
+            },
+            "fuel_pressure": {
+                "title": "Low Fuel Pressure",
+                "probability": "HIGH",
+                "causes": [
+                    "Weak fuel pump",
+                    "Clogged fuel filter",
+                    "Leaking fuel pressure regulator",
+                    "Restricted fuel line",
+                    "Bad fuel pump relay"
+                ],
+                "tests": [
+                    "Install fuel pressure gauge: Key on = 55-62 PSI, Running = 58-65 PSI",
+                    "Check fuel filter for restrictions",
+                    "Test fuel pump amperage draw: 4-6 amps typical",
+                    "Check fuel pressure regulator vacuum line for fuel",
+                    "Verify fuel pump relay clicking and providing 12V"
+                ],
+                "repair": [
+                    "Replace fuel filter first ($20-50, 30 minutes)",
+                    "Replace fuel pump if weak ($200-600, 2-3 hours)",
+                    "Replace fuel pressure regulator if leaking ($50-150, 1 hour)",
+                    "Clear codes, verify pressure readings, test drive"
+                ],
+                "parts": ["Fuel filter ($20-50)", "Fuel pump ($200-600)", "Pressure regulator ($50-150)"],
+                "time": "30 minutes - 3 hours"
+            },
+            "fuel_pump": {
+                "title": "Fuel Pump Failure",
+                "probability": "CRITICAL",
+                "causes": [
+                    "Failed fuel pump motor",
+                    "No power to fuel pump",
+                    "Blown fuel pump fuse",
+                    "Bad fuel pump relay",
+                    "Faulty PCM fuel pump driver"
+                ],
+                "tests": [
+                    "Check fuel pump fuse (15-20A typical) - replace if blown",
+                    "Check fuel pump relay - swap with similar relay to test",
+                    "Test voltage at fuel pump connector: Should be 12V when cranking",
+                    "Listen for fuel pump prime with helper turning key on",
+                    "Check fuel pump ground circuit: Should be <0.2V drop"
+                ],
+                "repair": [
+                    "Replace blown fuse, find short if it blows again",
+                    "Replace fuel pump relay ($15-30, 5 minutes)",
+                    "Repair wiring if voltage missing at pump",
+                    "Replace fuel pump if power/ground OK but no prime ($200-600, 2-3 hours)",
+                    "Clear codes, verify operation"
+                ],
+                "parts": ["Fuel pump fuse ($2-5)", "Fuel pump relay ($15-30)", "Fuel pump ($200-600)"],
+                "time": "15 minutes - 3 hours"
+            }
+        }
+    },
+    "no_crank_no_start": {
+        "title": "No Crank No Start",
+        "category": "Automotive",
+        "description": "Engine won't crank when key is turned",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "What happens when you turn the key to start?",
+                "options": [
+                    {"value": "click", "label": "Single click sound", "next": "q2"},
+                    {"value": "nothing", "label": "Nothing - no sound at all", "next": "q3"},
+                    {"value": "rapid_click", "label": "Rapid clicking", "diagnosis": "low_battery"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "Do the dashboard lights dim when you turn the key?",
+                "options": [
+                    {"value": "yes", "label": "Yes - lights dim", "diagnosis": "bad_starter"},
+                    {"value": "no", "label": "No - lights stay bright", "diagnosis": "starter_circuit"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "Do the dashboard lights come on with key on?",
+                "options": [
+                    {"value": "yes", "label": "Yes - dash lights work", "next": "q4"},
+                    {"value": "no", "label": "No - completely dead", "diagnosis": "battery_dead"}
+                ]
+            },
+            {
+                "id": "q4",
+                "question": "Is the vehicle an automatic transmission?",
+                "options": [
+                    {"value": "yes", "label": "Yes - automatic", "next": "q5"},
+                    {"value": "no", "label": "No - manual", "next": "q6"}
+                ]
+            },
+            {
+                "id": "q5",
+                "question": "Can you shift out of park easily?",
+                "options": [
+                    {"value": "yes", "label": "Yes - shifts normally", "diagnosis": "neutral_safety"},
+                    {"value": "no", "label": "No - stuck in park", "diagnosis": "shift_interlock"}
+                ]
+            },
+            {
+                "id": "q6",
+                "question": "Is the clutch pedal depressed when trying to start?",
+                "options": [
+                    {"value": "yes", "label": "Yes - clutch pressed", "diagnosis": "clutch_switch"},
+                    {"value": "no", "label": "No - not pressed", "diagnosis": "clutch_required"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "low_battery": {
+                "title": "Low Battery Voltage",
+                "probability": "CRITICAL",
+                "causes": ["Weak/discharged battery", "Bad alternator", "Parasitic drain", "Corroded battery terminals"],
+                "tests": [
+                    "Test battery voltage: Key off = 12.6V, Key on = 12.4V minimum",
+                    "Load test battery: Should maintain 9.6V under load",
+                    "Check alternator output: 13.8-14.5V at 2000 RPM",
+                    "Check for corrosion on battery terminals",
+                    "Test for parasitic drain: <50mA with everything off"
+                ],
+                "repair": [
+                    "Clean battery terminals with wire brush and baking soda solution",
+                    "Charge battery with charger to 12.6V",
+                    "Load test - replace battery if fails test ($100-200, 30 min)",
+                    "Replace alternator if output low ($200-500, 1-2 hours)",
+                    "Find and repair parasitic drain source"
+                ],
+                "parts": ["Battery ($100-200)", "Battery terminals ($10-20)", "Alternator ($200-500)"],
+                "time": "30 minutes - 2 hours"
+            },
+            "bad_starter": {
+                "title": "Failed Starter Motor",
+                "probability": "HIGH",
+                "causes": ["Worn starter motor", "Bad starter solenoid", "Seized engine", "Flywheel ring gear damaged"],
+                "tests": [
+                    "Tap starter with hammer while someone turns key - if it works, starter is bad",
+                    "Check voltage at starter during crank: Should be 10V minimum",
+                    "Test starter amperage draw: 80-150A typical, >250A indicates problem",
+                    "Try to rotate engine by hand - should turn freely",
+                    "Inspect flywheel ring gear for damaged teeth"
+                ],
+                "repair": [
+                    "Remove starter motor (2-4 bolts, typically 1-2 hours)",
+                    "Bench test starter: Should spin freely, draw 80-150A",
+                    "Replace starter if failed ($150-400, 1-2 hours)",
+                    "Replace flywheel if ring gear damaged ($300-800, 4-6 hours)",
+                    "Verify 12V at solenoid trigger wire during start"
+                ],
+                "parts": ["Starter motor ($150-400)", "Starter solenoid ($30-80)", "Flywheel ($300-800)"],
+                "time": "1-6 hours depending on issue"
+            }
+        }
+    },
+    "hydraulic_system": {
+        "title": "Hydraulic System Diagnostics",
+        "category": "Heavy Equipment",
+        "description": "Hydraulic system troubleshooting",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "What is the primary symptom?",
+                "options": [
+                    {"value": "slow", "label": "Slow operation", "next": "q2"},
+                    {"value": "no_function", "label": "No function at all", "next": "q3"},
+                    {"value": "erratic", "label": "Erratic/jerky movement", "diagnosis": "air_in_system"},
+                    {"value": "leaking", "label": "External leaking", "diagnosis": "hydraulic_leak"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "What is the system pressure reading?",
+                "options": [
+                    {"value": "normal", "label": "Normal (2500-3000 PSI)", "next": "q4"},
+                    {"value": "low", "label": "Low (<2000 PSI)", "diagnosis": "low_pressure"},
+                    {"value": "zero", "label": "Zero pressure", "diagnosis": "pump_failure"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "Can you hear the hydraulic pump running?",
+                "options": [
+                    {"value": "yes", "label": "Yes - pump running", "next": "q2"},
+                    {"value": "no", "label": "No - pump not running", "diagnosis": "pump_drive"}
+                ]
+            },
+            {
+                "id": "q4",
+                "question": "What is the hydraulic oil temperature?",
+                "options": [
+                    {"value": "normal", "label": "Normal (110-140°F)", "diagnosis": "internal_leakage"},
+                    {"value": "hot", "label": "Hot (>180°F)", "diagnosis": "overheating"},
+                    {"value": "cold", "label": "Cold (<80°F)", "diagnosis": "cold_oil"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "low_pressure": {
+                "title": "Low Hydraulic Pressure",
+                "probability": "HIGH",
+                "causes": ["Worn hydraulic pump", "Relief valve set too low", "Internal leakage", "Restricted filter", "Low oil level"],
+                "tests": [
+                    "Check hydraulic oil level in reservoir - should be at FULL mark",
+                    "Install pressure gauge at pump output: Should read 2500-3000 PSI at full load",
+                    "Check relief valve setting: Adjust to spec (typically 3000 PSI)",
+                    "Check filter restriction indicator - replace if restricted",
+                    "Test pump flow rate: Should match spec (15-25 GPM typical)"
+                ],
+                "repair": [
+                    "Add hydraulic oil to proper level (ISO VG 46 or per spec)",
+                    "Replace hydraulic filter ($30-100, 30 minutes)",
+                    "Adjust relief valve to proper pressure setting",
+                    "Replace hydraulic pump if worn ($800-3000, 4-8 hours)",
+                    "Flush system if contaminated"
+                ],
+                "parts": ["Hydraulic oil (5-20 gal, $50-200)", "Filters ($30-100)", "Pump ($800-3000)"],
+                "time": "30 minutes - 8 hours"
+            },
+            "pump_failure": {
+                "title": "Hydraulic Pump Failure",
+                "probability": "CRITICAL",
+                "causes": ["Seized pump", "Broken pump drive", "Sheared coupling", "No oil in reservoir"],
+                "tests": [
+                    "Check oil level - CRITICAL: pump will fail if run dry",
+                    "Check pump drive coupling for damage",
+                    "Try to rotate pump by hand - should turn with some resistance",
+                    "Check for metal contamination in oil - indicates pump failure",
+                    "Verify PTO or pump drive is engaging"
+                ],
+                "repair": [
+                    "If seized: Replace hydraulic pump ($800-3000, 4-8 hours)",
+                    "If coupling broken: Replace coupling ($100-300, 2-3 hours)",
+                    "Flush entire system if metal contamination present",
+                    "Replace all filters after pump replacement",
+                    "Fill to proper level, bleed air from system"
+                ],
+                "parts": ["Hydraulic pump ($800-3000)", "Drive coupling ($100-300)", "Filters ($30-100)"],
+                "time": "2-8 hours"
+            }
+        }
+    },
+    "transmission": {
+        "title": "Transmission/Gearbox",
+        "category": "Automotive",
+        "description": "Transmission problems",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "Is this an automatic or manual transmission?",
+                "options": [
+                    {"value": "auto", "label": "Automatic", "next": "q2"},
+                    {"value": "manual", "label": "Manual", "next": "q5"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "What is the primary issue?",
+                "options": [
+                    {"value": "no_shift", "label": "Won't shift out of park", "diagnosis": "shift_lock"},
+                    {"value": "slipping", "label": "Slipping/high RPM", "next": "q3"},
+                    {"value": "harsh", "label": "Harsh shifting", "next": "q4"},
+                    {"value": "no_engage", "label": "Won't engage any gear", "diagnosis": "trans_failure"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "When does the slipping occur?",
+                "options": [
+                    {"value": "all_gears", "label": "All gears", "diagnosis": "low_fluid"},
+                    {"value": "one_gear", "label": "Specific gear only", "diagnosis": "clutch_pack"},
+                    {"value": "upshift", "label": "During upshifts only", "diagnosis": "solenoid"}
+                ]
+            },
+            {
+                "id": "q4",
+                "question": "Have you checked the transmission fluid level?",
+                "options": [
+                    {"value": "yes_ok", "label": "Yes - level is OK", "diagnosis": "valve_body"},
+                    {"value": "yes_low", "label": "Yes - level is low", "diagnosis": "low_fluid"},
+                    {"value": "no", "label": "Not checked yet", "diagnosis": "check_fluid_first"}
+                ]
+            },
+            {
+                "id": "q5",
+                "question": "What is the clutch issue?",
+                "options": [
+                    {"value": "slipping", "label": "Clutch slipping", "diagnosis": "worn_clutch"},
+                    {"value": "no_disengage", "label": "Won't disengage", "diagnosis": "clutch_hydraulic"},
+                    {"value": "noise", "label": "Grinding noise shifting", "diagnosis": "synchro"},
+                    {"value": "hard_shift", "label": "Hard to shift", "diagnosis": "linkage"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "low_fluid": {
+                "title": "Low Transmission Fluid",
+                "probability": "HIGH",
+                "causes": ["Fluid leak", "Worn seals", "Cooler line leak", "Pan gasket leak"],
+                "tests": [
+                    "Check fluid level with engine running, trans in park, on level ground",
+                    "Check fluid condition: Should be red/pink, not brown/burnt",
+                    "Look for leaks: pan, cooler lines, seals, torque converter",
+                    "Check for ATF in coolant (indicates cooler leak)",
+                    "Perform pressure test: 50-150 PSI typical at idle"
+                ],
+                "repair": [
+                    "Add correct ATF fluid to proper level (Dexron VI, Mercon V, etc.)",
+                    "Replace pan gasket if leaking ($20-50, 1 hour)",
+                    "Replace cooler lines if leaking ($30-80, 1-2 hours)",
+                    "Replace input/output shaft seals ($50-200, 2-4 hours)",
+                    "Scan for codes, test drive, recheck level"
+                ],
+                "parts": ["ATF fluid ($10-20/qt)", "Pan gasket ($20-50)", "Seals ($50-200)"],
+                "time": "1-4 hours"
+            },
+            "clutch_pack": {
+                "title": "Worn Clutch Pack",
+                "probability": "HIGH",
+                "causes": ["Normal wear", "Burnt clutches", "Low fluid", "Overheating"],
+                "tests": [
+                    "Scan for transmission codes - will show clutch slip codes",
+                    "Perform stall test: Should be 2200-2800 RPM, higher indicates slip",
+                    "Check fluid for burnt smell and dark color",
+                    "Monitor transmission temp: Should be 175-200°F normal",
+                    "Road test - note which gear slips"
+                ],
+                "repair": [
+                    "Transmission rebuild required ($1500-3500, 8-20 hours)",
+                    "Replace specific clutch pack ($800-2000, 6-12 hours)",
+                    "Replace all friction plates and steels",
+                    "Replace filter and fluid",
+                    "Perform relearn procedure after repair"
+                ],
+                "parts": ["Rebuild kit ($400-800)", "Clutch pack ($300-600)", "Filter ($30-60)"],
+                "time": "6-20 hours"
+            },
+            "worn_clutch": {
+                "title": "Worn Clutch (Manual)",
+                "probability": "HIGH",
+                "causes": ["Normal wear", "Riding clutch", "Oil contamination", "Worn pressure plate"],
+                "tests": [
+                    "Test clutch engagement height - should be mid-pedal",
+                    "Check for slipping under load (high gear, low RPM acceleration)",
+                    "Inspect clutch hydraulic fluid level",
+                    "Check for oil leaks on clutch disc (rear main seal)",
+                    "Test pressure plate release fingers"
+                ],
+                "repair": [
+                    "Replace clutch kit: disc, pressure plate, throwout bearing ($200-500, 4-8 hours)",
+                    "Resurface or replace flywheel ($100-300 additional)",
+                    "Replace rear main seal if leaking ($50-150 additional)",
+                    "Bleed clutch hydraulic system",
+                    "Road test and verify proper operation"
+                ],
+                "parts": ["Clutch kit ($200-500)", "Flywheel ($100-300)", "Hydraulic fluid ($10-15)"],
+                "time": "4-8 hours"
+            }
+        }
+    },
+    "air_brakes": {
+        "title": "Air Brake System",
+        "category": "Heavy Equipment",
+        "description": "Air brake diagnostics",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "What is the primary issue?",
+                "options": [
+                    {"value": "low_pressure", "label": "Low air pressure", "next": "q2"},
+                    {"value": "no_brakes", "label": "No braking power", "next": "q3"},
+                    {"value": "dragging", "label": "Brakes dragging", "diagnosis": "brake_drag"},
+                    {"value": "air_leak", "label": "Audible air leak", "diagnosis": "air_leak_check"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "What is the air pressure reading?",
+                "options": [
+                    {"value": "slow_build", "label": "Builds slowly (>2 min to 120 PSI)", "next": "q4"},
+                    {"value": "wont_build", "label": "Won't build above 80 PSI", "diagnosis": "compressor"},
+                    {"value": "drops_fast", "label": "Builds OK but drops fast", "diagnosis": "major_leak"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "Is air pressure above 90 PSI?",
+                "options": [
+                    {"value": "yes", "label": "Yes - pressure OK", "diagnosis": "brake_chamber"},
+                    {"value": "no", "label": "No - low pressure", "next": "q2"}
+                ]
+            },
+            {
+                "id": "q4",
+                "question": "Can you hear the compressor running?",
+                "options": [
+                    {"value": "yes", "label": "Yes - constantly running", "diagnosis": "air_leak_check"},
+                    {"value": "no", "label": "No - not running enough", "diagnosis": "compressor"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "compressor": {
+                "title": "Air Compressor Failure",
+                "probability": "HIGH",
+                "causes": ["Worn compressor", "Broken compressor drive", "Stuck unloader valve", "Blown head gasket"],
+                "tests": [
+                    "Check compressor drive belt tension - should not slip",
+                    "Listen for compressor operation during pressure build",
+                    "Check compressor output: Should build 0-120 PSI in <2 minutes",
+                    "Test unloader valve operation at governor cut-out (120 PSI)",
+                    "Check for oil in air lines (indicates compressor wear)"
+                ],
+                "repair": [
+                    "Replace air compressor ($500-1500, 3-5 hours)",
+                    "Replace compressor drive belt ($30-80, 30 minutes)",
+                    "Replace unloader valve ($50-150, 1 hour)",
+                    "Rebuild compressor if available ($300-800, 4-6 hours)",
+                    "Replace air dryer cartridge after compressor work ($80-200)"
+                ],
+                "parts": ["Air compressor ($500-1500)", "Drive belt ($30-80)", "Unloader valve ($50-150)"],
+                "time": "1-6 hours"
+            },
+            "major_leak": {
+                "title": "Major Air System Leak",
+                "probability": "CRITICAL",
+                "causes": ["Cracked air line", "Failed air tank", "Leaking brake chamber", "Failed air dryer"],
+                "tests": [
+                    "Build air to 120 PSI, shut off engine",
+                    "Listen for air leaks at: tanks, chambers, valves, lines",
+                    "Spray soapy water on connections to find leaks",
+                    "System should not drop more than 3 PSI/minute at 120 PSI",
+                    "Apply brakes - should not drop more than 6 PSI/minute"
+                ],
+                "repair": [
+                    "Replace cracked air lines ($20-100, 1-2 hours)",
+                    "Replace leaking brake chambers ($80-200 each, 1-2 hours per)",
+                    "Replace air dryer if leaking ($200-500, 2-3 hours)",
+                    "Replace air tank if rusted/cracked ($150-400, 2-4 hours)",
+                    "Pressure test entire system after repairs"
+                ],
+                "parts": ["Air lines ($20-100)", "Brake chambers ($80-200)", "Air dryer ($200-500)"],
+                "time": "1-6 hours depending on location"
+            },
+            "brake_chamber": {
+                "title": "Brake Chamber/Slack Adjuster",
+                "probability": "HIGH",
+                "causes": ["Out of adjustment slack adjuster", "Worn brake chamber", "Frozen S-cam", "Broken return spring"],
+                "tests": [
+                    "Check pushrod travel: Should be 1.5-2 inches when brakes applied",
+                    "If >2 inches: brakes need adjustment",
+                    "Check slack adjuster operation - should self-adjust",
+                    "Inspect brake chamber for air leaks",
+                    "Check S-cam bushings for wear"
+                ],
+                "repair": [
+                    "Adjust slack adjusters to spec (1.5-2\" travel, 30 minutes)",
+                    "Replace brake chambers if leaking ($80-200 each, 1 hour)",
+                    "Replace slack adjusters if worn ($40-100 each, 1 hour)",
+                    "Lubricate S-cam and bushings",
+                    "Replace brake shoes if worn ($100-200 per axle, 2-3 hours)"
+                ],
+                "parts": ["Brake chambers ($80-200)", "Slack adjusters ($40-100)", "Brake shoes ($100-200)"],
+                "time": "30 minutes - 4 hours"
+            }
+        }
+    },
+    "hybrid_system": {
+        "title": "Hybrid System Diagnostics",
+        "category": "Hybrid/Electric",
+        "description": "Hybrid vehicle troubleshooting",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "What is the primary symptom?",
+                "options": [
+                    {"value": "no_start", "label": "Won't start/go to READY", "next": "q2"},
+                    {"value": "warning_light", "label": "Hybrid system warning light", "diagnosis": "scan_codes"},
+                    {"value": "no_ev", "label": "Won't run in EV mode", "next": "q3"},
+                    {"value": "reduced_power", "label": "Reduced power mode", "diagnosis": "scan_codes"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "Does the 12V battery have proper voltage?",
+                "options": [
+                    {"value": "yes", "label": "Yes - 12.6V or higher", "next": "q4"},
+                    {"value": "no", "label": "No - low voltage", "diagnosis": "12v_battery"},
+                    {"value": "not_checked", "label": "Haven't checked", "diagnosis": "check_12v_first"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "What is the hybrid battery state of charge?",
+                "options": [
+                    {"value": "normal", "label": "Normal (40-80%)", "diagnosis": "hybrid_control"},
+                    {"value": "low", "label": "Low (<20%)", "diagnosis": "hv_battery_low"},
+                    {"value": "unknown", "label": "Can't determine", "diagnosis": "scan_codes"}
+                ]
+            },
+            {
+                "id": "q4",
+                "question": "Do you hear the HV system relays click when pressing power button?",
+                "options": [
+                    {"value": "yes", "label": "Yes - relays click", "diagnosis": "hv_interlock"},
+                    {"value": "no", "label": "No - no click", "diagnosis": "hv_relay"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "scan_codes": {
+                "title": "Scan Hybrid System Codes",
+                "probability": "CRITICAL",
+                "causes": ["Various hybrid system faults"],
+                "tests": [
+                    "Connect scan tool capable of reading hybrid codes (HDS, Techstream, etc.)",
+                    "Read all DTCs from: PCM, HV ECU, Battery ECU, Inverter",
+                    "Record freeze frame data for all codes",
+                    "Check HV battery voltage: Should be 200-300V nominal",
+                    "Monitor HV battery module voltages: All should be within 0.5V"
+                ],
+                "repair": [
+                    "Common codes and fixes:",
+                    "P0A80 - HV Battery Pack Failure: Check module voltages, may need cell replacement",
+                    "P3000-P3999 - HV Battery Deterioration: Battery capacity test needed",
+                    "P0A0F - Hybrid Battery Cooling Fan: Replace fan or clean vents",
+                    "P0AA6 - Hybrid Battery Positive Contactor: Replace main relay assembly",
+                    "U0100 - Lost Communication: Check 12V battery, HV system fuse"
+                ],
+                "parts": ["Varies by code - battery modules ($1000-3000)", "HV relays ($200-500)"],
+                "time": "1-8 hours depending on issue"
+            },
+            "12v_battery": {
+                "title": "12V Auxiliary Battery",
+                "probability": "HIGH",
+                "causes": ["Weak 12V battery", "Corroded terminals", "Failed DC-DC converter"],
+                "tests": [
+                    "Test 12V battery: Should be 12.6V key off, 14.2V when READY",
+                    "Load test 12V battery: Should maintain 9.6V under load",
+                    "Check DC-DC converter output when READY: 13.8-14.5V",
+                    "Check for parasitic drain: <50mA with vehicle off",
+                    "Inspect 12V battery terminals for corrosion"
+                ],
+                "repair": [
+                    "Clean battery terminals thoroughly",
+                    "Replace 12V battery if weak ($150-250, 30 minutes)",
+                    "Replace DC-DC converter if no output ($500-1200, 2-3 hours)",
+                    "Check for parasitic drain sources",
+                    "Verify hybrid system boots after 12V repair"
+                ],
+                "parts": ["12V battery ($150-250)", "DC-DC converter ($500-1200)", "Terminals ($15-30)"],
+                "time": "30 minutes - 3 hours"
+            },
+            "hv_battery_low": {
+                "title": "High Voltage Battery Depleted",
+                "probability": "MEDIUM",
+                "causes": ["Battery not charging", "Long term storage", "Failed charging system"],
+                "tests": [
+                    "Check HV battery voltage: Should be 200-300V (varies by vehicle)",
+                    "Start engine and monitor HV battery charging",
+                    "Check generator/motor-generator operation",
+                    "Verify battery cooling fan operation",
+                    "Check for HV battery insulation resistance: >500 kOhm to chassis"
+                ],
+                "repair": [
+                    "Allow vehicle to charge HV battery (may take 30-60 minutes of running)",
+                    "Check and clean HV battery cooling vents/filters",
+                    "Replace HV battery cooling fan if failed ($150-400)",
+                    "If won't charge: Check HV fuse, main relay, inverter",
+                    "Complete recharge cycle: Drive for 20-30 minutes"
+                ],
+                "parts": ["HV cooling fan ($150-400)", "HV fuse ($20-50)"],
+                "time": "30 minutes - 2 hours"
+            },
+            "hv_interlock": {
+                "title": "HV System Interlock Open",
+                "probability": "HIGH",
+                "causes": ["Service plug removed", "Interlock circuit open", "Crash sensor triggered"],
+                "tests": [
+                    "SAFETY: Wear insulated gloves rated for HV work (Class 00 minimum)",
+                    "Check HV service plug is fully installed in battery pack",
+                    "Test interlock circuit continuity: Should be <1 ohm",
+                    "Check crash sensors have not triggered",
+                    "Verify all HV connectors are fully seated",
+                    "Check HV relay operation with scan tool"
+                ],
+                "repair": [
+                    "Reinstall HV service plug if removed",
+                    "Repair interlock circuit if open ($100-300, 1-2 hours)",
+                    "Reset crash sensor if triggered (scan tool procedure)",
+                    "Replace damaged HV connectors ($50-200 each)",
+                    "Clear codes and verify READY mode"
+                ],
+                "parts": ["Interlock connector ($50-150)", "HV service plug ($80-200)"],
+                "time": "30 minutes - 2 hours"
+            }
+        }
+    }
+}
+
 # Models
 class DiagramCategory(BaseModel):
     model_config = ConfigDict(extra="ignore")
