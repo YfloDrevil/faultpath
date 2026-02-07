@@ -1154,6 +1154,27 @@ Your goal is to give the technician EVERYTHING they need to diagnose and repair 
     
     return assistant_msg
 
+# Quick Diagnostics Endpoints
+@api_router.get("/diagnostic-flows")
+async def get_diagnostic_flows():
+    """Get list of all available diagnostic flows"""
+    flows = []
+    for key, flow in DIAGNOSTIC_FLOWS.items():
+        flows.append({
+            "id": key,
+            "title": flow["title"],
+            "category": flow["category"],
+            "description": flow["description"]
+        })
+    return flows
+
+@api_router.get("/diagnostic-flows/{flow_id}")
+async def get_diagnostic_flow(flow_id: str):
+    """Get specific diagnostic flow with questions and diagnoses"""
+    if flow_id not in DIAGNOSTIC_FLOWS:
+        raise HTTPException(status_code=404, detail="Diagnostic flow not found")
+    return DIAGNOSTIC_FLOWS[flow_id]
+
 # Include router
 app.include_router(api_router)
 
