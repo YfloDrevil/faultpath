@@ -28,11 +28,12 @@ Restore and rebuild the "FaultPath" diagnostic assistant for mechanics/technicia
 ## Current Status (as of this update)
 - App rebuilt with AI chat, Quick Diagnostics, Technical Reference, and PWA scaffolding.
 - Deployment hardcoded LLM fallback removed.
+- Reference Diagrams seeded with visual images across wiring and equipment categories.
+- Brand-specific Quick Diagnostics prompts added (Toyota, Ford, Bobcat, Excavator, Forklift).
 
 ## Known Issues / Gaps
 - AI chat blocked when Emergent LLM key budget is exceeded.
-- Reference Diagrams section empty (needs visual content).
-- Quick Diagnostics not fully brand/equipment-specific.
+- Further brand/equipment tailoring needed beyond current coverage.
 - Deployment readiness: DB_NAME injection and supervisor config required by deploy layer.
 
 ## Prioritized Backlog
@@ -40,8 +41,8 @@ Restore and rebuild the "FaultPath" diagnostic assistant for mechanics/technicia
 - Restore AI chat (user to provide OpenAI key or top-up Emergent Universal Key).
 
 ### P1
-- Brand/equipment-specific diagnostic branching.
-- Populate Reference Diagrams with real schematics/images.
+- Extend brand/equipment-specific diagnostic branching.
+- Expand diagram library with preferred OEM schematics.
 
 ### P2
 - Test offline/PWA caching flows.
@@ -49,5 +50,5 @@ Restore and rebuild the "FaultPath" diagnostic assistant for mechanics/technicia
 
 ## Next Action Items
 - Confirm AI key approach (top-up vs OpenAI key).
-- Decide diagram sources to populate.
-- Provide priority brands/equipment for diagnostic tailoring.
+- Review diagram sources (swap in OEM or user-provided schematics if desired).
+- Provide priority brands/equipment for deeper diagnostic tailoring.
