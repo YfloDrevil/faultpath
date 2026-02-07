@@ -1037,6 +1037,7 @@ class ChatConversation(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     equipment_name: str
     category: Optional[str] = None  # Automotive, Heavy Diesel, HVAC, etc.
+    fuel_type: Optional[str] = None
     vin_number: Optional[str] = None
     year: Optional[str] = None
     make: Optional[str] = None
@@ -1070,6 +1071,7 @@ class MessageCreate(BaseModel):
 class ConversationCreate(BaseModel):
     equipment_name: str
     category: Optional[str] = None
+    fuel_type: Optional[str] = None
     vin_number: Optional[str] = None
     year: Optional[str] = None
     make: Optional[str] = None
