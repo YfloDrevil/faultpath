@@ -94,6 +94,11 @@ const DiagramList = () => {
     }
   };
 
+  const isPdfSource = (source, type) =>
+    type === 'application/pdf' ||
+    source?.startsWith('data:application/pdf') ||
+    source?.toLowerCase().endsWith('.pdf');
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
