@@ -11,7 +11,7 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 import base64
-from emergentintegrations import LLM
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -23,7 +23,6 @@ db = client[os.environ['DB_NAME']]
 
 # Emergent LLM setup
 EMERGENT_LLM_KEY = os.getenv('EMERGENT_LLM_KEY', 'sk-emergent-01a98B2D539FfF44dC')
-llm = LLM(api_key=EMERGENT_LLM_KEY)
 
 # Create the main app
 app = FastAPI()
