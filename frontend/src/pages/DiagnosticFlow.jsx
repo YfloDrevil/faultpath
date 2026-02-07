@@ -770,6 +770,7 @@ Please provide detailed technical assistance based on my specific equipment and 
                     <p className="text-slate-400 mb-2">Click to upload equipment photos</p>
                     <p className="text-xs text-slate-500">Helps with visual diagnosis</p>
                     <input
+                      data-testid="diagnostic-photos-input"
                       type="file"
                       accept="image/*"
                       multiple
