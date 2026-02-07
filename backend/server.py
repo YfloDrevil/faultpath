@@ -61,6 +61,13 @@ class ChatConversation(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     equipment_name: str
+    category: Optional[str] = None  # Automotive, Heavy Diesel, HVAC, etc.
+    vin_number: Optional[str] = None
+    year: Optional[str] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    symptoms: Optional[str] = None
+    fault_codes: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -85,6 +92,13 @@ class MessageCreate(BaseModel):
 
 class ConversationCreate(BaseModel):
     equipment_name: str
+    category: Optional[str] = None
+    vin_number: Optional[str] = None
+    year: Optional[str] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    symptoms: Optional[str] = None
+    fault_codes: Optional[str] = None
 
 # Initialize default categories
 async def init_default_data():
