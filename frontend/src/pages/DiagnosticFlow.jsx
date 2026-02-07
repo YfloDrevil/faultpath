@@ -479,6 +479,13 @@ const DiagnosticFlow = () => {
                   </Badge>
                 )}
               </div>
+              {equipmentDetails.fuel_type && (
+                <div className="mt-3 p-3 bg-blue-600/20 border border-blue-500 rounded-lg">
+                  <p className="text-blue-300 text-sm font-semibold">
+                    🔧 Diagnostics adjusted for {equipmentDetails.fuel_type.toUpperCase()} engine
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
