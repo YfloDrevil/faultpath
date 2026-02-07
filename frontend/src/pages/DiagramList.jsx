@@ -209,7 +209,7 @@ const DiagramList = () => {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {diagrams.map((diagram) => (
               <div
                 key={diagram.id}
@@ -220,13 +220,15 @@ const DiagramList = () => {
                   <img
                     src={diagram.image_data}
                     alt={diagram.title}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-64 object-cover"
                   />
                 )}
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-white mb-2">{diagram.title}</h3>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-white mb-3">{diagram.title}</h3>
                   {diagram.description && (
-                    <p className="text-sm text-slate-400">{diagram.description}</p>
+                    <div className="text-sm text-slate-300 whitespace-pre-wrap font-mono bg-slate-900/50 p-4 rounded-lg border border-slate-700">
+                      {diagram.description}
+                    </div>
                   )}
                 </div>
               </div>
