@@ -51,7 +51,6 @@ const EQUIPMENT_TYPES = [
   'Other Heavy Equipment'
 ];
 
-const normalizeValue = (value) => (value || '').toLowerCase();
 const includesAny = (value, terms) => terms.some((term) => value.includes(term));
 
 const buildBrandContext = (details) => {
