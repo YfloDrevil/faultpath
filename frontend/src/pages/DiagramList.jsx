@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { ArrowLeft, Upload, Image as ImageIcon, Trash2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,8 @@ const DiagramList = () => {
     title: '',
     description: '',
     image_data: null,
+    file_name: '',
+    file_type: '',
   });
 
   useEffect(() => {
