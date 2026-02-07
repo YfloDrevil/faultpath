@@ -714,20 +714,45 @@ const DiagnosticFlow = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button
-                onClick={restart}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Start Over
-              </Button>
-              <Button
-                onClick={() => navigate('/quick-diagnostics')}
-                variant="outline"
-                className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
-              >
-                Choose Different Flow
-              </Button>
+            <div className="space-y-4">
+              {/* AI Chat Button - Prominent */}
+              <Card className="bg-gradient-to-r from-purple-600 to-blue-600 border-0">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-white font-bold text-lg mb-2">Need More Detailed Help?</h3>
+                      <p className="text-blue-100 text-sm">
+                        Get AI-powered assistance with your specific equipment details and diagnostic results
+                      </p>
+                    </div>
+                    <Button
+                      data-testid="ai-chat-help-btn"
+                      onClick={handleAskAI}
+                      className="bg-white text-purple-600 hover:bg-blue-50 font-semibold px-6 py-6 ml-4"
+                    >
+                      <MessageSquare className="w-5 h-5 mr-2" />
+                      Ask AI Assistant
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex gap-4">
+                <Button
+                  onClick={restart}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Start Over
+                </Button>
+                <Button
+                  onClick={() => navigate('/quick-diagnostics')}
+                  variant="outline"
+                  className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
+                >
+                  Choose Different Flow
+                </Button>
+              </div>
+            </div>
             </div>
           </div>
         )}
