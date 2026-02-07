@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, Send, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ const API = `${BACKEND_URL}/api`;
 const ConversationPage = () => {
   const navigate = useNavigate();
   const { conversationId } = useParams();
+  const location = useLocation();
   const { toast } = useToast();
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -22,6 +23,7 @@ const ConversationPage = () => {
   const [sending, setSending] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [initialMessageSent, setInitialMessageSent] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -30,6 +32,20 @@ const ConversationPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Send initial message from Quick Diagnostics if provided
+    if (location.state?.initialMessage && !initialMessageSent && messages.length === 0 && !loading) {
+      setMessageText(location.state.initialMessage);
+      setInitialMessageSent(true);
+      // Auto-send after a brief delay
+      setTimeout(() => {
+        if (location.state.initialMessage) {
+          handleSendMessage(location.state.initialMessage);
+        }
+      }, 500);
+    }
+  }, [location.state, messages, loading, initialMessageSent]);
 
   const fetchData = async () => {
     try {
