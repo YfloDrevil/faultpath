@@ -782,6 +782,7 @@ Please provide detailed technical assistance based on my specific equipment and 
               </div>
 
               <Button
+                data-testid="start-diagnostic-btn"
                 onClick={startDiagnostic}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6"
               >
