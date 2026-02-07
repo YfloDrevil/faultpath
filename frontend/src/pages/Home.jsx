@@ -39,12 +39,20 @@ const Home = () => {
               Quick Diagnostics
             </Button>
             <Button
+              data-testid="technical-reference-nav-btn"
+              onClick={() => navigate('/technical-reference')}
+              variant="outline"
+              className="border-green-600 text-green-400 hover:bg-green-600 hover:text-white"
+            >
+              Technical Reference
+            </Button>
+            <Button
               data-testid="reference-diagrams-nav-btn"
               onClick={() => navigate('/reference-diagrams')}
               variant="outline"
               className="border-slate-600 text-slate-300 hover:bg-slate-800"
             >
-              Reference Diagrams
+              Wiring Diagrams
             </Button>
             <Button
               data-testid="chat-nav-btn"
@@ -52,7 +60,7 @@ const Home = () => {
               className="bg-blue-500 hover:bg-blue-600 text-white"
             >
               <MessageSquare className="w-4 h-4 mr-2" />
-              Start Diagnosis
+              AI Chat
             </Button>
           </div>
         </div>
