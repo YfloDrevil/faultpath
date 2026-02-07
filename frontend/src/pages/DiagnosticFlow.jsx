@@ -659,7 +659,10 @@ Please provide detailed technical assistance based on my specific equipment and 
                     value={equipmentDetails.fuel_type}
                     onValueChange={(value) => setEquipmentDetails({...equipmentDetails, fuel_type: value})}
                   >
-                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-2">
+                  <SelectTrigger
+                    data-testid="fuel-type-select"
+                    className="bg-slate-900 border-slate-700 text-white mt-2"
+                  >
                       <SelectValue placeholder="Select fuel type" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
