@@ -88,13 +88,14 @@ const ConversationPage = () => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSendMessage = async () => {
-    if (!messageText.trim() && uploadedImages.length === 0) return;
+  const handleSendMessage = async (customMessage = null) => {
+    const messageToSend = customMessage || messageText;
+    if (!messageToSend.trim() && uploadedImages.length === 0) return;
 
     setSending(true);
     try {
       const payload = {
-        content: messageText.trim(),
+        content: messageToSend.trim(),
         images: uploadedImages.length > 0 ? uploadedImages : null,
       };
 
