@@ -695,6 +695,309 @@ DIAGNOSTIC_FLOWS = {
                 "time": "30 minutes - 2 hours"
             }
         }
+    },
+    "excavator": {
+        "title": "Excavator Diagnostics",
+        "category": "Heavy Equipment",
+        "description": "Excavator hydraulic and engine issues",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "What system is having issues?",
+                "options": [
+                    {"value": "boom", "label": "Boom (main arm) slow or no movement", "next": "q2"},
+                    {"value": "swing", "label": "Swing motor not turning", "next": "q3"},
+                    {"value": "travel", "label": "Travel motor issues", "next": "q4"},
+                    {"value": "engine", "label": "Engine performance issues", "diagnosis": "engine_power"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "Does the bucket or stick work normally?",
+                "options": [
+                    {"value": "yes", "label": "Yes - only boom affected", "diagnosis": "boom_cylinder"},
+                    {"value": "no", "label": "No - all functions slow", "diagnosis": "main_pump"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "Can you hear the swing motor engaging?",
+                "options": [
+                    {"value": "yes", "label": "Yes - motor tries but won't turn", "diagnosis": "swing_brake"},
+                    {"value": "no", "label": "No - no sound at all", "diagnosis": "swing_motor"}
+                ]
+            },
+            {
+                "id": "q4",
+                "question": "Which track is affected?",
+                "options": [
+                    {"value": "both", "label": "Both tracks weak/slow", "diagnosis": "travel_pump"},
+                    {"value": "one", "label": "Only one track", "diagnosis": "travel_motor_single"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "boom_cylinder": {
+                "title": "Boom Cylinder or Control Valve Issue",
+                "probability": "HIGH",
+                "causes": ["Leaking boom cylinder seals", "Spool valve wear", "Pilot pressure low", "Cylinder rod bent/scored"],
+                "tests": [
+                    "Check pilot pressure: Should be 28-35 PSI at joystick",
+                    "Test main hydraulic pressure: Should be 4500-5000 PSI at boom circuit",
+                    "Inspect boom cylinder for external leaks and scoring",
+                    "Check cylinder drift: Raise boom, shut off engine, measure drop in 5 minutes (<2 inches OK)",
+                    "Test control valve spool movement - should move freely"
+                ],
+                "repair": [
+                    "Replace boom cylinder seals ($200-800, 6-10 hours)",
+                    "Rebuild control valve spool ($500-1500, 8-12 hours)",
+                    "Check and adjust pilot pressure to spec",
+                    "Replace cylinder if rod bent/scored ($2000-5000, 10-16 hours)",
+                    "Flush hydraulic system, change filters"
+                ],
+                "parts": ["Cylinder seal kit ($200-800)", "Control valve rebuild ($500-1500)", "Hydraulic filters ($50-150)"],
+                "time": "6-16 hours"
+            },
+            "main_pump": {
+                "title": "Main Hydraulic Pump Failure",
+                "probability": "CRITICAL",
+                "causes": ["Worn pump", "Low oil level", "Contaminated oil", "Broken pump drive"],
+                "tests": [
+                    "Check hydraulic oil level - MUST be at FULL mark",
+                    "Check oil condition - look for metal particles, milky appearance",
+                    "Test main pump pressure: Should be 4500-5000 PSI",
+                    "Listen for pump whining/grinding noise",
+                    "Check pump case drain flow: Should be <1 GPM (excessive = internal wear)"
+                ],
+                "repair": [
+                    "Replace main hydraulic pump ($3000-8000, 12-20 hours)",
+                    "Flush entire hydraulic system",
+                    "Replace all hydraulic filters",
+                    "Clean hydraulic tank thoroughly",
+                    "Refill with correct hydraulic oil (ISO VG 46 typical, 50-80 gallons)"
+                ],
+                "parts": ["Main pump ($3000-8000)", "Filters ($150-300)", "Hydraulic oil (50-80 gal, $300-600)"],
+                "time": "12-20 hours"
+            },
+            "swing_brake": {
+                "title": "Swing Brake Not Releasing",
+                "probability": "HIGH",
+                "causes": ["Seized swing brake", "Low pilot pressure", "Failed brake solenoid", "Contaminated brake"],
+                "tests": [
+                    "Check pilot pressure at swing motor: Should be 28-35 PSI",
+                    "Test brake release solenoid: Should have 12-24V when swing engaged",
+                    "Try manually releasing brake (if accessible) - should free up swing",
+                    "Check for brake fluid/oil leaking onto brake discs",
+                    "Measure swing motor case pressure: Should be <50 PSI"
+                ],
+                "repair": [
+                    "Rebuild/replace swing brake ($800-2000, 6-10 hours)",
+                    "Replace brake solenoid if failed ($150-400, 2-3 hours)",
+                    "Clean brake discs if oil contaminated ($300-600, 4-6 hours)",
+                    "Adjust pilot pressure if low",
+                    "Test swing operation - should rotate smoothly 360°"
+                ],
+                "parts": ["Swing brake kit ($800-2000)", "Brake solenoid ($150-400)", "Seals ($100-250)"],
+                "time": "4-10 hours"
+            }
+        }
+    },
+    "forklift": {
+        "title": "Forklift Diagnostics",
+        "category": "Heavy Equipment",
+        "description": "Forklift mast and drive issues",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "What is the primary issue?",
+                "options": [
+                    {"value": "no_lift", "label": "Forks won't lift", "next": "q2"},
+                    {"value": "drift", "label": "Forks drift down slowly", "diagnosis": "cylinder_leak"},
+                    {"value": "no_drive", "label": "Won't move forward/backward", "next": "q3"},
+                    {"value": "steering", "label": "Steering issues", "diagnosis": "steering_system"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "Can you hear the hydraulic pump running?",
+                "options": [
+                    {"value": "yes", "label": "Yes - pump runs", "diagnosis": "lift_valve"},
+                    {"value": "no", "label": "No - no pump sound", "diagnosis": "pump_motor"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "Is this a diesel, propane, or electric forklift?",
+                "options": [
+                    {"value": "diesel", "label": "Diesel", "diagnosis": "diesel_drive"},
+                    {"value": "propane", "label": "Propane/LPG", "diagnosis": "propane_drive"},
+                    {"value": "electric", "label": "Electric", "diagnosis": "electric_drive"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "cylinder_leak": {
+                "title": "Lift Cylinder Internal Leak",
+                "probability": "HIGH",
+                "causes": ["Worn cylinder seals", "Scored cylinder rod", "Damaged piston", "Contaminated hydraulic oil"],
+                "tests": [
+                    "Raise forks to full height, shut off engine/power",
+                    "Measure fork drop over 5 minutes: >3 inches = internal leak",
+                    "Check for external oil leaks on cylinder rod",
+                    "Inspect rod for scoring, pitting, rust",
+                    "Check hydraulic oil condition for contamination"
+                ],
+                "repair": [
+                    "Replace lift cylinder seals ($150-500, 4-6 hours)",
+                    "Polish cylinder rod if minor scoring ($200-400, 2-3 hours)",
+                    "Replace cylinder if rod severely damaged ($800-2000, 6-8 hours)",
+                    "Change hydraulic oil and filter",
+                    "Test lift/lower operation after repair"
+                ],
+                "parts": ["Cylinder seal kit ($150-500)", "Hydraulic oil (5-10 gal, $50-150)", "Filter ($30-80)"],
+                "time": "4-8 hours"
+            },
+            "lift_valve": {
+                "title": "Lift Control Valve Failure",
+                "probability": "HIGH",
+                "causes": ["Stuck valve spool", "Worn valve seals", "Contaminated valve", "Broken valve spring"],
+                "tests": [
+                    "Test hydraulic pressure at pump: Should be 2200-2800 PSI",
+                    "Check pilot pressure at lift lever: Should be 200-400 PSI",
+                    "Remove valve cover, inspect spool for sticking/scoring",
+                    "Test valve manually if accessible",
+                    "Check for metal particles in oil (indicates valve wear)"
+                ],
+                "repair": [
+                    "Rebuild lift control valve ($300-800, 4-6 hours)",
+                    "Replace valve if severely worn ($600-1500, 4-6 hours)",
+                    "Flush hydraulic system",
+                    "Replace hydraulic filter",
+                    "Adjust relief valve to spec (2200-2800 PSI typical)"
+                ],
+                "parts": ["Valve rebuild kit ($300-800)", "New valve ($600-1500)", "Filter ($30-80)"],
+                "time": "4-6 hours"
+            },
+            "electric_drive": {
+                "title": "Electric Drive Motor/Controller Issue",
+                "probability": "HIGH",
+                "causes": ["Low battery voltage", "Failed motor controller", "Worn drive motor brushes", "Bad accelerator potentiometer"],
+                "tests": [
+                    "Check battery voltage: Should be 36V, 48V, or 80V nominal (depends on model)",
+                    "Load test batteries: Should maintain voltage under load",
+                    "Test accelerator potentiometer: Should show 0-5V sweep when pedal pressed",
+                    "Check motor controller for error codes",
+                    "Test drive motor amperage: Should be 200-400A under load"
+                ],
+                "repair": [
+                    "Charge batteries fully: 36V=43.2V, 48V=57.6V, 80V=96V",
+                    "Replace weak batteries ($150-300 each, 2-4 hours for full set)",
+                    "Replace motor controller if failed ($800-2000, 3-5 hours)",
+                    "Replace drive motor brushes ($100-300, 2-3 hours)",
+                    "Replace accelerator pedal/pot ($150-400, 1-2 hours)"
+                ],
+                "parts": ["Batteries ($150-300 each)", "Controller ($800-2000)", "Brushes ($100-300)"],
+                "time": "2-5 hours"
+            }
+        }
+    },
+    "generator": {
+        "title": "Generator Diagnostics",
+        "category": "Heavy Equipment",
+        "description": "Generator won't start or produce power",
+        "questions": [
+            {
+                "id": "q1",
+                "question": "What is the main issue?",
+                "options": [
+                    {"value": "no_start", "label": "Won't start", "next": "q2"},
+                    {"value": "runs_no_power", "label": "Runs but no electrical output", "next": "q3"},
+                    {"value": "low_power", "label": "Low voltage output", "diagnosis": "avr_issue"},
+                    {"value": "surging", "label": "Engine surging/unstable", "diagnosis": "governor"}
+                ]
+            },
+            {
+                "id": "q2",
+                "question": "Does the engine crank?",
+                "options": [
+                    {"value": "yes", "label": "Yes - cranks but won't fire", "diagnosis": "fuel_ignition"},
+                    {"value": "no", "label": "No - won't crank", "diagnosis": "starting_system"}
+                ]
+            },
+            {
+                "id": "q3",
+                "question": "What is the voltage reading on the panel?",
+                "options": [
+                    {"value": "zero", "label": "0V - no output at all", "diagnosis": "excitation"},
+                    {"value": "low", "label": "Some voltage but low", "diagnosis": "avr_issue"}
+                ]
+            }
+        ],
+        "diagnoses": {
+            "fuel_ignition": {
+                "title": "Fuel or Ignition System Issue",
+                "probability": "HIGH",
+                "causes": ["Empty fuel tank", "Clogged fuel filter", "Bad spark plug", "Faulty ignition coil", "Stale fuel"],
+                "tests": [
+                    "Check fuel level in tank - add fresh fuel if low/empty",
+                    "Test spark plug: Remove, ground to engine, crank - should see blue spark",
+                    "Check spark plug gap: Should be 0.028-0.032 inches",
+                    "Test fuel flow: Remove fuel line at carburetor, should flow freely",
+                    "Check fuel shut-off solenoid: Should click when key turned on"
+                ],
+                "repair": [
+                    "Add fresh fuel if stale (drain old fuel first)",
+                    "Replace fuel filter ($10-30, 15 minutes)",
+                    "Replace spark plug ($5-15, 10 minutes) - Use correct heat range",
+                    "Replace ignition coil if no spark ($40-100, 30 minutes)",
+                    "Clean carburetor if fuel flow restricted ($50-150, 1-2 hours)"
+                ],
+                "parts": ["Spark plug ($5-15)", "Fuel filter ($10-30)", "Ignition coil ($40-100)", "Carb kit ($20-50)"],
+                "time": "15 minutes - 2 hours"
+            },
+            "starting_system": {
+                "title": "Starting System Failure",
+                "probability": "HIGH",
+                "causes": ["Dead battery", "Bad starter", "Seized engine", "Faulty key switch"],
+                "tests": [
+                    "Check battery voltage: Should be 12.6V or higher",
+                    "Load test battery: Should maintain 9.6V under load",
+                    "Test voltage at starter during crank: Should be 10V minimum",
+                    "Check starter amperage: 80-150A typical, >250A indicates problem",
+                    "Try rotating engine by hand - should turn freely"
+                ],
+                "repair": [
+                    "Charge or replace battery ($80-150, 30 minutes)",
+                    "Clean battery terminals",
+                    "Replace starter if failed ($150-400, 1-2 hours)",
+                    "Replace key switch if no voltage at starter ($30-80, 30 minutes)",
+                    "Check engine oil level - add if low (may prevent starting)"
+                ],
+                "parts": ["Battery ($80-150)", "Starter ($150-400)", "Key switch ($30-80)"],
+                "time": "30 minutes - 2 hours"
+            },
+            "avr_issue": {
+                "title": "AVR (Automatic Voltage Regulator) Failure",
+                "probability": "HIGH",
+                "causes": ["Failed AVR", "Bad rotor windings", "Loose connections", "Faulty capacitor"],
+                "tests": [
+                    "Check output voltage with multimeter: Should be 120V/240V ±5%",
+                    "Test rotor resistance: Should be 5-15 ohms (varies by model)",
+                    "Check excitation voltage at AVR: Should be present when running",
+                    "Inspect all electrical connections for looseness/corrosion",
+                    "Test output with no load vs. full load"
+                ],
+                "repair": [
+                    "Replace AVR module ($50-200, 30-60 minutes)",
+                    "Tighten all electrical connections",
+                    "Replace rotor if resistance out of spec ($300-800, 3-5 hours)",
+                    "Replace start capacitor if failed ($20-60, 20 minutes)",
+                    "Adjust AVR potentiometer to correct voltage output"
+                ],
+                "parts": ["AVR module ($50-200)", "Start capacitor ($20-60)", "Rotor ($300-800)"],
+                "time": "30 minutes - 5 hours"
+            }
+        }
     }
 }
 
