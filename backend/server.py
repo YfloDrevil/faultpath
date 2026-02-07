@@ -22,7 +22,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Emergent LLM setup
-EMERGENT_LLM_KEY = os.getenv('EMERGENT_LLM_KEY', 'sk-emergent-01a98B2D539FfF44dC')
+EMERGENT_LLM_KEY = os.environ['EMERGENT_LLM_KEY']
 
 # Create the main app
 app = FastAPI()
