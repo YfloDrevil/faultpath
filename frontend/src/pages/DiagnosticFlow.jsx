@@ -305,6 +305,210 @@ const DiagnosticFlow = () => {
     return originalFlow;
   };
 
+  const applyBrandSpecificAdjustments = (originalFlow, details) => {
+    const context = buildBrandContext(details);
+    const firstQuestionId = originalFlow.questions?.[0]?.id;
+    if (!firstQuestionId) return originalFlow;
+
+    if (flowId === 'crank_no_start') {
+      if (context.isToyota) {
+        return insertBrandQuestion(
+          originalFlow,
+          {
+            id: 'q_toyota_immobilizer',
+            question: 'Is the security/immobilizer light flashing rapidly while cranking?',
+            options: [
+              { value: 'yes', label: 'Yes - security light flashing', diagnosis: 'immobilizer_active' },
+              { value: 'no', label: 'No - light normal/off', next: firstQuestionId }
+            ]
+          },
+          {
+            immobilizer_active: {
+              title: 'Immobilizer/Security System Active (Toyota/Lexus)',
+              probability: 'HIGH',
+              causes: [
+                'Unrecognized key transponder',
+                'Faulty immobilizer antenna ring',
+                'Security ECU not authorizing start',
+                'Low key fob battery (smart key systems)'
+              ],
+              tests: [
+                'Try a spare programmed key',
+                'Check key fob battery and proximity function',
+                'Scan for immobilizer DTCs (B2799, B279A common)',
+                'Verify immobilizer antenna resistance per service data'
+              ],
+              repair: [
+                'Replace key fob battery and re-test',
+                'Reprogram key if needed (dealer/locksmith)',
+                'Replace immobilizer antenna ring if failed',
+                'Repair security ECU wiring/ground'
+              ],
+              parts: ['Key fob battery ($5-15)', 'Immobilizer antenna ring ($60-150)'],
+              time: '30 minutes - 2 hours'
+            }
+          }
+        );
+      }
+
+      if (context.isFord) {
+        return insertBrandQuestion(
+          originalFlow,
+          {
+            id: 'q_ford_pats',
+            question: 'Is the PATS/theft light flashing fast or staying on during crank?',
+            options: [
+              { value: 'yes', label: 'Yes - PATS/theft light active', diagnosis: 'pats_issue' },
+              { value: 'no', label: 'No - theft light normal', next: firstQuestionId }
+            ]
+          },
+          {
+            pats_issue: {
+              title: 'PATS/Anti-Theft Preventing Start (Ford)',
+              probability: 'HIGH',
+              causes: [
+                'Unprogrammed or damaged transponder key',
+                'Faulty PATS antenna ring',
+                'PATS module/PCM communication fault',
+                'Aftermarket remote start/immobilizer conflict'
+              ],
+              tests: [
+                'Try a spare known-good key',
+                'Check for PATS codes (B1600, B1601, P1260)',
+                'Verify antenna ring connection and resistance',
+                'Disconnect aftermarket alarm/remote start if installed'
+              ],
+              repair: [
+                'Program keys using IDS or locksmith tool',
+                'Replace PATS antenna ring if failed',
+                'Repair wiring between PATS module and PCM',
+                'Remove/repair conflicting aftermarket security system'
+              ],
+              parts: ['PATS antenna ring ($50-120)', 'Transponder key ($30-120)'],
+              time: '30 minutes - 2 hours'
+            }
+          }
+        );
+      }
+    }
+
+    if (flowId === 'hydraulic_system' && context.isBobcat) {
+      return insertBrandQuestion(
+        originalFlow,
+        {
+          id: 'q_bobcat_interlock',
+          question: 'Is the seat bar down and the hydraulic interlock unlocked?',
+          options: [
+            { value: 'no', label: 'No - interlock not engaged', diagnosis: 'safety_interlock' },
+            { value: 'yes', label: 'Yes - interlock engaged', next: firstQuestionId }
+          ]
+        },
+        {
+          safety_interlock: {
+            title: 'Safety Interlock Preventing Hydraulics (Bobcat)',
+            probability: 'HIGH',
+            causes: [
+              'Seat bar not fully latched',
+              'Parking brake switch not engaged',
+              'Hydraulic lockout solenoid not energizing',
+              'Seat bar position sensor failure'
+            ],
+            tests: [
+              'Verify seat bar fully lowered and indicator light',
+              'Check parking brake switch operation',
+              'Listen for lockout solenoid click when enabling hydraulics',
+              'Inspect seat bar sensor wiring and connectors'
+            ],
+            repair: [
+              'Adjust or replace seat bar latch mechanism',
+              'Replace faulty seat bar sensor',
+              'Repair lockout solenoid wiring',
+              'Reset safety interlock per service procedure'
+            ],
+            parts: ['Seat bar sensor ($80-200)', 'Lockout solenoid ($120-300)'],
+            time: '30 minutes - 2 hours'
+          }
+        }
+      );
+    }
+
+    if (flowId === 'excavator' && (context.isCaterpillar || context.isKomatsu || context.isExcavator)) {
+      return insertBrandQuestion(
+        originalFlow,
+        {
+          id: 'q_excavator_lockout',
+          question: 'Is the hydraulic lockout lever (pilot control shutoff) in the ON position?',
+          options: [
+            { value: 'no', label: 'No - lockout engaged', diagnosis: 'lockout_engaged' },
+            { value: 'yes', label: 'Yes - lockout off', next: firstQuestionId }
+          ]
+        },
+        {
+          lockout_engaged: {
+            title: 'Hydraulic Lockout Engaged',
+            probability: 'MEDIUM',
+            causes: [
+              'Pilot control lockout lever left engaged',
+              'Faulty pilot shutoff valve',
+              'Pilot solenoid not energizing'
+            ],
+            tests: [
+              'Verify lockout lever position and indicator light',
+              'Check pilot pressure at joystick when lockout is OFF',
+              'Test pilot solenoid power/ground when lever is released'
+            ],
+            repair: [
+              'Set lockout lever to OFF and retest',
+              'Replace pilot shutoff valve if sticking',
+              'Repair pilot solenoid wiring or replace solenoid'
+            ],
+            parts: ['Pilot shutoff solenoid ($150-400)'],
+            time: '30 minutes - 2 hours'
+          }
+        }
+      );
+    }
+
+    if (flowId === 'forklift' && context.isForklift) {
+      return insertBrandQuestion(
+        originalFlow,
+        {
+          id: 'q_forklift_ops',
+          question: 'Is the operator presence/seat switch engaged and parking brake released?',
+          options: [
+            { value: 'no', label: 'No - seat switch or brake not engaged', diagnosis: 'operator_presence' },
+            { value: 'yes', label: 'Yes - switches engaged', next: firstQuestionId }
+          ]
+        },
+        {
+          operator_presence: {
+            title: 'Operator Presence Interlock Active',
+            probability: 'HIGH',
+            causes: [
+              'Seat switch not closing',
+              'Parking brake switch stuck',
+              'OPS module fault (Toyota/Hyster style systems)'
+            ],
+            tests: [
+              'Check seat switch continuity when operator seated',
+              'Verify parking brake switch state on dash',
+              'Inspect OPS module connections and ground'
+            ],
+            repair: [
+              'Adjust or replace seat switch',
+              'Replace faulty parking brake switch',
+              'Repair OPS module wiring'
+            ],
+            parts: ['Seat switch ($60-180)', 'OPS module ($200-500)'],
+            time: '30 minutes - 2 hours'
+          }
+        }
+      );
+    }
+
+    return originalFlow;
+  };
+
   const handleAnswer = (option) => {
     const currentQuestion = flow.questions.find(q => q.id === currentQuestionId);
     
