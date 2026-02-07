@@ -30,6 +30,15 @@ const Home = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Button
+              data-testid="quick-diagnostics-nav-btn"
+              onClick={() => navigate('/quick-diagnostics')}
+              variant="outline"
+              className="border-yellow-600 text-yellow-400 hover:bg-yellow-600 hover:text-white"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Quick Diagnostics
+            </Button>
+            <Button
               data-testid="reference-diagrams-nav-btn"
               onClick={() => navigate('/reference-diagrams')}
               variant="outline"
