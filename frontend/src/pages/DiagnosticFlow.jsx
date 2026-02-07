@@ -313,6 +313,71 @@ const DiagnosticFlow = () => {
     setHistory([]);
   };
 
+  const handleAskAI = async () => {
+    try {
+      // Build comprehensive context message
+      const contextMessage = `I need help with a diagnostic I just completed using FaultPath Quick Diagnostics:
+
+**Equipment Details:**
+${equipmentDetails.equipment_type ? `Equipment Type: ${equipmentDetails.equipment_type}` : ''}
+${equipmentDetails.fuel_type ? `Fuel Type: ${equipmentDetails.fuel_type.toUpperCase()}` : ''}
+${equipmentDetails.year || equipmentDetails.make || equipmentDetails.model ? `Vehicle: ${[equipmentDetails.year, equipmentDetails.make, equipmentDetails.model].filter(Boolean).join(' ')}` : ''}
+${equipmentDetails.vin ? `VIN: ${equipmentDetails.vin}` : ''}
+
+**Diagnostic Flow:** ${flow.title}
+
+**Diagnostic Path Taken:**
+${history.map((h, idx) => `${idx + 1}. Q: ${h.question}\n   A: ${h.answer}`).join('\n')}
+
+**Diagnosis Result:** ${diagnosis.title}
+**Probability:** ${diagnosis.probability}
+
+**Identified Causes:**
+${diagnosis.causes.map((c, idx) => `${idx + 1}. ${c}`).join('\n')}
+
+**I need more detailed assistance with:**
+- Understanding the root cause
+- Clarification on testing procedures
+- Step-by-step repair guidance
+- Parts recommendations
+- Any additional diagnostic steps
+
+Please provide detailed technical assistance based on my specific equipment and the diagnosis above.`;
+
+      // Create a new conversation with this context
+      const conversationData = {
+        equipment_name: `${equipmentDetails.year || ''} ${equipmentDetails.make || ''} ${equipmentDetails.model || ''} ${equipmentDetails.equipment_type || 'Vehicle'}`.trim(),
+        category: flow.category || 'Automotive',
+        fuel_type: equipmentDetails.fuel_type,
+        year: equipmentDetails.year,
+        make: equipmentDetails.make,
+        model: equipmentDetails.model,
+        vin: equipmentDetails.vin,
+        symptoms: `Quick Diagnostic Result: ${diagnosis.title} - ${diagnosis.causes.join(', ')}`,
+        fault_codes: ''
+      };
+
+      const res = await axios.post(`${API}/conversations`, conversationData);
+      
+      // Navigate to the chat with the conversation ID
+      // The context message will be used as the first message
+      navigate(`/chat/${res.data.id}`, { 
+        state: { 
+          initialMessage: contextMessage,
+          diagnosticContext: {
+            diagnosis: diagnosis.title,
+            equipment: equipmentDetails,
+            history: history
+          }
+        } 
+      });
+    } catch (error) {
+      console.error('Error creating AI conversation:', error);
+      // Fallback: Just navigate to chat page
+      navigate('/chat');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
