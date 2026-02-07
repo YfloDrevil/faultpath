@@ -1019,6 +1019,8 @@ class Diagram(BaseModel):
     title: str
     description: Optional[str] = None
     image_data: Optional[str] = None  # Base64 encoded image
+    file_name: Optional[str] = None
+    file_type: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ChatMessage(BaseModel):
@@ -1058,6 +1060,8 @@ class DiagramCreate(BaseModel):
     title: str
     description: Optional[str] = None
     image_data: Optional[str] = None
+    file_name: Optional[str] = None
+    file_type: Optional[str] = None
 
 class MessageCreate(BaseModel):
     content: str
