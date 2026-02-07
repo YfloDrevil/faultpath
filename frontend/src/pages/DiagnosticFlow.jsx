@@ -581,7 +581,7 @@ Please provide detailed technical assistance based on my specific equipment and 
         year: equipmentDetails.year,
         make: equipmentDetails.make,
         model: equipmentDetails.model,
-        vin: equipmentDetails.vin,
+        vin_number: equipmentDetails.vin,
         symptoms: `Quick Diagnostic Result: ${diagnosis.title} - ${diagnosis.causes.join(', ')}`,
         fault_codes: ''
       };
