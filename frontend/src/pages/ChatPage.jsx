@@ -295,12 +295,11 @@ const ChatPage = () => {
             </div>
           </div>
         )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
 };
+
+export default ChatPage;
 
 export default ChatPage;
