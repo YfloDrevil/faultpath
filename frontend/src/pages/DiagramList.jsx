@@ -250,11 +250,34 @@ const DiagramList = () => {
                 className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden hover:border-slate-600 transition-all"
               >
                 {diagram.image_data && (
-                  <img
-                    src={diagram.image_data}
-                    alt={diagram.title}
-                    className="w-full h-64 object-cover"
-                  />
+                  isPdfSource(diagram.image_data, diagram.file_type) ? (
+                    <div className="flex items-center justify-between gap-4 p-6 bg-slate-900/60 border-b border-slate-700">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-8 h-8 text-blue-400" />
+                        <div>
+                          <p className="text-slate-100 font-medium">
+                            {diagram.file_name || 'PDF Diagram'}
+                          </p>
+                          <p className="text-sm text-slate-400">PDF document</p>
+                        </div>
+                      </div>
+                      <a
+                        data-testid={`diagram-pdf-open-${diagram.id}`}
+                        href={diagram.image_data}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-blue-400 hover:text-blue-300"
+                      >
+                        Open PDF
+                      </a>
+                    </div>
+                  ) : (
+                    <img
+                      src={diagram.image_data}
+                      alt={diagram.title}
+                      className="w-full h-64 object-cover"
+                    />
+                  )
                 )}
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-white mb-3">{diagram.title}</h3>
