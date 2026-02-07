@@ -1,0 +1,19 @@
+{
+  "short_name": "FaultPath",
+  "name": "FaultPath - Diagnostic Assistant",
+  "description": "Professional diagnostic assistant for mechanics and technicians",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1e293b",
+  "background_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "screenshots": []
+}
