@@ -54,7 +54,12 @@ const DiagramList = () => {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setFormData({ ...formData, image_data: reader.result });
+      setFormData({
+        ...formData,
+        image_data: reader.result,
+        file_name: file.name,
+        file_type: file.type
+      });
     };
     reader.readAsDataURL(file);
   };
