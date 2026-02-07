@@ -51,6 +51,31 @@ const EQUIPMENT_TYPES = [
   'Other Heavy Equipment'
 ];
 
+const normalizeValue = (value) => (value || '').toLowerCase();
+const includesAny = (value, terms) => terms.some((term) => value.includes(term));
+
+const buildBrandContext = (details) => {
+  const combined = `${details.equipment_type || ''} ${details.make || ''}`.toLowerCase();
+  return {
+    combined,
+    isToyota: includesAny(combined, ['toyota', 'lexus']),
+    isFord: includesAny(combined, ['ford', 'lincoln']),
+    isNissan: includesAny(combined, ['nissan']),
+    isHonda: includesAny(combined, ['honda', 'acura']),
+    isBobcat: includesAny(combined, ['bobcat', 'skid steer']),
+    isCaterpillar: includesAny(combined, ['caterpillar', 'cat ']),
+    isKomatsu: includesAny(combined, ['komatsu']),
+    isExcavator: includesAny(combined, ['excavator']),
+    isForklift: includesAny(combined, ['forklift'])
+  };
+};
+
+const insertBrandQuestion = (flow, question, diagnoses) => ({
+  ...flow,
+  questions: [question, ...flow.questions],
+  diagnoses: { ...flow.diagnoses, ...diagnoses }
+});
+
 const DiagnosticFlow = () => {
   const navigate = useNavigate();
   const { flowId } = useParams();
