@@ -34,6 +34,7 @@ const ChatPage = () => {
   const [formData, setFormData] = useState({
     equipment_name: '',
     category: '',
+    fuel_type: '',
     vin_number: '',
     year: '',
     make: '',
@@ -147,6 +148,26 @@ const ChatPage = () => {
                             {cat}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Fuel Type */}
+                  <div>
+                    <Label className="text-slate-300">Fuel Type</Label>
+                    <Select
+                      value={formData.fuel_type}
+                      onValueChange={(value) => setFormData({ ...formData, fuel_type: value })}
+                    >
+                      <SelectTrigger data-testid="chat-fuel-type-select" className="bg-slate-900 border-slate-700 text-white mt-2">
+                        <SelectValue placeholder="Select fuel type" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectItem value="petrol" className="text-white hover:bg-slate-700">Petrol/Gasoline</SelectItem>
+                        <SelectItem value="diesel" className="text-white hover:bg-slate-700">Diesel</SelectItem>
+                        <SelectItem value="hybrid" className="text-white hover:bg-slate-700">Hybrid</SelectItem>
+                        <SelectItem value="electric" className="text-white hover:bg-slate-700">Electric</SelectItem>
+                        <SelectItem value="lpg" className="text-white hover:bg-slate-700">LPG/CNG</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
