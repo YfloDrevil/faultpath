@@ -625,6 +625,7 @@ Please provide detailed technical assistance based on my specific equipment and 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <button
+              data-testid="diagnostic-back-btn"
               onClick={() => navigate('/quick-diagnostics')}
               className="flex items-center text-slate-400 hover:text-white transition-colors"
             >
