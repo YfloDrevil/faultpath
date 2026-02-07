@@ -681,7 +681,10 @@ Please provide detailed technical assistance based on my specific equipment and 
                     value={equipmentDetails.equipment_type}
                     onValueChange={(value) => setEquipmentDetails({...equipmentDetails, equipment_type: value})}
                   >
-                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-2">
+                  <SelectTrigger
+                    data-testid="equipment-type-select"
+                    className="bg-slate-900 border-slate-700 text-white mt-2"
+                  >
                       <SelectValue placeholder="Select equipment type" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700 max-h-[300px]">
