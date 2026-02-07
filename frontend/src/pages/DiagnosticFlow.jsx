@@ -818,7 +818,6 @@ Please provide detailed technical assistance based on my specific equipment and 
                 </Button>
               </div>
             </div>
-            </div>
           </div>
         )}
       </div>
