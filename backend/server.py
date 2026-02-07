@@ -1075,193 +1075,132 @@ class ConversationCreate(BaseModel):
 
 # Initialize default categories
 async def init_default_data():
-    # Check if categories exist
-    existing = await db.categories.count_documents({})
-    if existing == 0:
-        categories = [
-            # Wiring Diagrams
-            {"id": str(uuid.uuid4()), "name": "Automotive", "icon": "car", "color": "#3B82F6", 
-             "diagram_type": "wiring", "count": 0, "description": "Engine, transmission, brakes"},
-            {"id": str(uuid.uuid4()), "name": "Electrical", "icon": "zap", "color": "#F97316", 
-             "diagram_type": "wiring", "count": 0, "description": "Electrical systems"},
-            {"id": str(uuid.uuid4()), "name": "HVAC", "icon": "wind", "color": "#14B8A6", 
-             "diagram_type": "wiring", "count": 0, "description": "Heating & cooling"},
-            {"id": str(uuid.uuid4()), "name": "Plumbing", "icon": "droplet", "color": "#A855F7", 
-             "diagram_type": "wiring", "count": 0, "description": "Plumbing systems"},
-            {"id": str(uuid.uuid4()), "name": "General", "icon": "wrench", "color": "#6B7280", 
-             "diagram_type": "wiring", "count": 0, "description": "General repairs"},
-            # Equipment & Parts
-            {"id": str(uuid.uuid4()), "name": "Fixed Plant", "icon": "factory", "color": "#10B981", 
-             "diagram_type": "equipment", "count": 0, "description": "Generators, compressors, pumps"},
-            {"id": str(uuid.uuid4()), "name": "Mobile Plant", "icon": "truck", "color": "#F97316", 
-             "diagram_type": "equipment", "count": 0, "description": "Excavators, loaders, cranes"},
-            {"id": str(uuid.uuid4()), "name": "Heavy Diesel", "icon": "cog", "color": "#EC4899", 
-             "diagram_type": "equipment", "count": 0, "description": "Engine systems and components"},
-        ]
-        await db.categories.insert_many(categories)
-        
-        # Add sample reference guides
-        auto_cat = next(c for c in categories if c["name"] == "Automotive")
-        elec_cat = next(c for c in categories if c["name"] == "Electrical")
-        
+    category_seed = [
+        # Wiring Diagrams
+        {"name": "Automotive", "icon": "car", "color": "#3B82F6", "diagram_type": "wiring", "description": "Engine, transmission, brakes"},
+        {"name": "Electrical", "icon": "zap", "color": "#F97316", "diagram_type": "wiring", "description": "Electrical systems"},
+        {"name": "HVAC", "icon": "wind", "color": "#14B8A6", "diagram_type": "wiring", "description": "Heating & cooling"},
+        {"name": "Plumbing", "icon": "droplet", "color": "#A855F7", "diagram_type": "wiring", "description": "Plumbing systems"},
+        {"name": "General", "icon": "wrench", "color": "#6B7280", "diagram_type": "wiring", "description": "General repairs"},
+        # Equipment & Parts
+        {"name": "Fixed Plant", "icon": "factory", "color": "#10B981", "diagram_type": "equipment", "description": "Generators, compressors, pumps"},
+        {"name": "Mobile Plant", "icon": "truck", "color": "#F97316", "diagram_type": "equipment", "description": "Excavators, loaders, cranes"},
+        {"name": "Heavy Diesel", "icon": "cog", "color": "#EC4899", "diagram_type": "equipment", "description": "Engine systems and components"}
+    ]
+
+    existing_categories = await db.categories.find({}, {"_id": 0}).to_list(100)
+    existing_map = {(c["name"], c["diagram_type"]): c for c in existing_categories}
+
+    for seed in category_seed:
+        key = (seed["name"], seed["diagram_type"])
+        if key in existing_map:
+            await db.categories.update_one(
+                {"id": existing_map[key]["id"]},
+                {"$set": {**seed}}
+            )
+        else:
+            await db.categories.insert_one({
+                **seed,
+                "id": str(uuid.uuid4()),
+                "count": 0
+            })
+
+    categories = await db.categories.find({}, {"_id": 0}).to_list(100)
+    category_map = {c["name"]: c["id"] for c in categories}
+
+    legacy_titles = [
+        "OBD-II Diagnostic Trouble Code Reference",
+        "Fuel System Pressure Specifications",
+        "Voltage Drop Testing Guide",
+        "Sensor Testing Quick Reference"
+    ]
+    await db.diagrams.delete_many({"title": {"$in": legacy_titles}})
+
+    existing_image_count = await db.diagrams.count_documents({"image_data": {"$ne": None}})
+    if existing_image_count == 0:
+        await db.diagrams.delete_many({"source": "seed"})
         sample_diagrams = [
             {
                 "id": str(uuid.uuid4()),
-                "category_id": auto_cat["id"],
-                "title": "OBD-II Diagnostic Trouble Code Reference",
-                "description": """Common OBD-II Codes Quick Reference:
-
-P0XXX - Powertrain Codes
-• P0030-P0061: O2 Sensor Heater Circuits
-• P0100-P0199: Fuel & Air Metering
-• P0171: System Too Lean (Bank 1)
-• P0172: System Too Rich (Bank 1)
-• P0300-P0312: Misfire Codes
-• P0420-P0434: Catalyst System
-• P0500-P0599: Vehicle Speed & Idle Control
-
-P1XXX - Manufacturer Specific
-P2XXX - Powertrain (Fuel, Ignition)
-P3XXX - Powertrain (Ignition, Misfire)
-
-C0XXX - Chassis Codes
-B0XXX - Body Codes  
-U0XXX - Network Communication Codes
-
-Testing Procedures:
-1. Connect OBD-II scanner
-2. Record all codes AND freeze frame data
-3. Clear codes only after repairs
-4. Test drive and rescan""",
-                "image_data": None,
+                "category_id": category_map.get("Automotive"),
+                "title": "Wiring Harness Routing Overview",
+                "description": "Main harness routing and branch points in the engine bay.",
+                "image_data": "https://images.unsplash.com/photo-1694617983959-7dd9ac7e09ae?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHwyfHxhdXRvbW90aXZlJTIwd2lyaW5nJTIwZGlhZ3JhbXxlbnwwfHx8fDE3NzA0ODA1NDV8MA&ixlib=rb-4.1.0&q=85",
+                "source": "seed",
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
                 "id": str(uuid.uuid4()),
-                "category_id": auto_cat["id"],
-                "title": "Fuel System Pressure Specifications",
-                "description": """Common Fuel Pressure Specifications:
-
-**Port Fuel Injection:**
-• Most vehicles: 55-65 PSI
-• Honda/Acura: 38-46 PSI
-• GM (older): 41-47 PSI
-• Ford: 30-45 PSI (depends on system)
-
-**Direct Injection:**
-• Low pressure: 50-80 PSI
-• High pressure: 500-2000+ PSI
-
-**Testing Procedure:**
-1. Install fuel pressure gauge at test port
-2. Key ON, engine OFF: Note pressure
-3. Start engine: Pressure should increase slightly
-4. Rev to 2000 RPM: Should maintain pressure
-5. Snap throttle: Watch for pressure drop
-
-**Acceptable Values:**
-• Key on: Within 5 PSI of spec
-• Running: Within 3 PSI of spec
-• No drop >5 PSI when throttle snapped
-• Hold pressure for 5 min after key off""",
-                "image_data": None,
+                "category_id": category_map.get("Electrical"),
+                "title": "Control Module Circuit Layout",
+                "description": "Reference layout for power, ground, and signal paths.",
+                "image_data": "https://images.unsplash.com/photo-1769149068959-b11392164add?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwxfHxlbGVjdHJpY2FsJTIwY2lyY3VpdCUyMGRpYWdyYW18ZW58MHx8fHwxNzcwNDgwNTUwfDA&ixlib=rb-4.1.0&q=85",
+                "source": "seed",
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
                 "id": str(uuid.uuid4()),
-                "category_id": elec_cat["id"],
-                "title": "Voltage Drop Testing Guide",
-                "description": """Voltage Drop Testing Specifications:
-
-**Maximum Acceptable Voltage Drops:**
-• Ground circuits: 0.2V maximum
-• Power circuits: 0.4V maximum  
-• Starter circuit: 0.5V maximum
-
-**Testing Procedure:**
-1. Set multimeter to DC volts (20V scale)
-2. Connect black lead to battery negative
-3. Connect red lead to component ground
-4. Activate circuit/component
-5. Read voltage drop
-
-**Common Test Points:**
-• Battery negative to engine block: <0.1V
-• Battery negative to body ground: <0.1V
-• Battery positive to starter: <0.5V
-• Fuse to component: <0.2V
-• Relay contacts: <0.1V
-
-**High Resistance Indicators:**
-• Voltage drop >spec = high resistance
-• Heat at connection point
-• Corrosion visible
-• Loose/damaged terminals
-
-**Repair:**
-• Clean connections with wire brush
-• Apply dielectric grease
-• Replace damaged wires
-• Ensure tight connections""",
-                "image_data": None,
+                "category_id": category_map.get("HVAC"),
+                "title": "HVAC Airflow & Blend Door Diagram",
+                "description": "Air distribution and blend door routing reference.",
+                "image_data": "https://images.unsplash.com/photo-1708807524676-86a7a4d42d2f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwxfHxodmFjJTIwc3lzdGVtJTIwZGlhZ3JhbXxlbnwwfHx8fDE3NzA0ODA1NTV8MA&ixlib=rb-4.1.0&q=85",
+                "source": "seed",
                 "created_at": datetime.now(timezone.utc).isoformat()
             },
             {
                 "id": str(uuid.uuid4()),
-                "category_id": auto_cat["id"],
-                "title": "Sensor Testing Quick Reference",
-                "description": """Common Sensor Specifications:
-
-**Oxygen Sensors (O2):**
-• Warm: Cycles 0.1-0.9V every 1-3 seconds
-• Cold: Fixed voltage ~0.45V
-• Heater circuit: 2-10 ohms
-• Response time: <100ms
-
-**MAF Sensor (Mass Air Flow):**
-• Key on: 0.5-0.8V
-• Idle: 1.5-2.5V
-• 2000 RPM: 2.5-4.0V
-• Resistance: Check service manual
-
-**MAP Sensor (Manifold Absolute Pressure):**
-• Key on, engine off: 4.5-4.8V (1 bar)
-• Idle: 1.0-2.0V (depends on elevation)
-• WOT: 4.5V
-
-**TPS (Throttle Position Sensor):**
-• Closed throttle: 0.5-0.9V
-• Wide open: 4.5-5.0V
-• Smooth sweep when opening
-• No glitches or dead spots
-
-**CKP/CMP (Crank/Cam Position):**
-• AC voltage: 0.5-2.0V AC
-• Resistance: 200-900 ohms typical
-• Gap: 0.020-0.050 inches
-
-**Coolant Temperature Sensor:**
-• Cold (70°F): 2000-3000 ohms
-• Warm (200°F): 200-400 ohms
-• Test with thermometer + ohmmeter""",
-                "image_data": None,
+                "category_id": category_map.get("Plumbing"),
+                "title": "Fluid Line Schematic",
+                "description": "Typical routing for supply, return, and drain lines.",
+                "image_data": "https://images.unsplash.com/photo-1650246363606-a2402ec42b08?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwxfHxwbHVtYmluZyUyMHNjaGVtYXRpY3xlbnwwfHx8fDE3NzA0ODA1NTl8MA&ixlib=rb-4.1.0&q=85",
+                "source": "seed",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": category_map.get("General"),
+                "title": "Component Assembly Blueprint",
+                "description": "Exploded view reference for component alignment.",
+                "image_data": "https://images.unsplash.com/photo-1769152683420-f4eff91cb30b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwyfHxtZWNoYW5pY2FsJTIwYmx1ZXByaW50fGVufDB8fHx8MTc3MDQ4MDU2M3ww&ixlib=rb-4.1.0&q=85",
+                "source": "seed",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": category_map.get("Fixed Plant"),
+                "title": "Generator Control Panel Layout",
+                "description": "Reference layout for fixed-plant generator controls.",
+                "image_data": "https://images.unsplash.com/photo-1705051278299-7e64ba21437a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxpbmR1c3RyaWFsJTIwZ2VuZXJhdG9yfGVufDB8fHx8MTc3MDQ4MDU3NHww&ixlib=rb-4.1.0&q=85",
+                "source": "seed",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": category_map.get("Mobile Plant"),
+                "title": "Excavator Hydraulic Circuit Overview",
+                "description": "Hydraulic routing and major components for mobile plant.",
+                "image_data": "https://images.unsplash.com/photo-1580901369227-308f6f40bdeb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NDh8MHwxfHNlYXJjaHwyfHxleGNhdmF0b3IlMjBoeWRyYXVsaWN8ZW58MHx8fHwxNzcwNDgwNTc4fDA&ixlib=rb-4.1.0&q=85",
+                "source": "seed",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": category_map.get("Heavy Diesel"),
+                "title": "Diesel Engine System Diagram",
+                "description": "Cylinder head, fuel system, and lubrication overview.",
+                "image_data": "https://images.unsplash.com/photo-1725916631310-4d7cdf815079?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwxfHxkaWVzZWwlMjBlbmdpbmUlMjBkaWFncmFtfGVufDB8fHx8MTc3MDQ4MDU4Mnww&ixlib=rb-4.1.0&q=85",
+                "source": "seed",
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
         ]
-        
-        await db.diagrams.insert_many(sample_diagrams)
-        
-        # Update category counts
-        await db.categories.update_one(
-            {"id": auto_cat["id"]},
-            {"$set": {"count": 3}}
-        )
-        await db.categories.update_one(
-            {"id": elec_cat["id"]},
-            {"$set": {"count": 1}}
-        )
-        
-        logger.info("Default categories and sample diagrams initialized")
+
+        await db.diagrams.insert_many([d for d in sample_diagrams if d["category_id"]])
+
+    for cat in categories:
+        count = await db.diagrams.count_documents({"category_id": cat["id"]})
+        await db.categories.update_one({"id": cat["id"]}, {"$set": {"count": count}})
+
+    logger.info("Default categories and sample diagrams initialized")
 
 # API Routes
 @api_router.get("/")
