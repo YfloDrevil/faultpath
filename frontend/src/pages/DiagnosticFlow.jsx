@@ -703,6 +703,7 @@ Please provide detailed technical assistance based on my specific equipment and 
                 <div>
                   <Label className="text-slate-300">Year</Label>
                   <Input
+                    data-testid="diagnostic-year-input"
                     value={equipmentDetails.year}
                     onChange={(e) => setEquipmentDetails({...equipmentDetails, year: e.target.value})}
                     className="bg-slate-900 border-slate-700 text-white mt-2"
@@ -712,6 +713,7 @@ Please provide detailed technical assistance based on my specific equipment and 
                 <div>
                   <Label className="text-slate-300">Make</Label>
                   <Input
+                    data-testid="diagnostic-make-input"
                     value={equipmentDetails.make}
                     onChange={(e) => setEquipmentDetails({...equipmentDetails, make: e.target.value})}
                     className="bg-slate-900 border-slate-700 text-white mt-2"
@@ -721,6 +723,7 @@ Please provide detailed technical assistance based on my specific equipment and 
                 <div>
                   <Label className="text-slate-300">Model</Label>
                   <Input
+                    data-testid="diagnostic-model-input"
                     value={equipmentDetails.model}
                     onChange={(e) => setEquipmentDetails({...equipmentDetails, model: e.target.value})}
                     className="bg-slate-900 border-slate-700 text-white mt-2"
@@ -733,6 +736,7 @@ Please provide detailed technical assistance based on my specific equipment and 
               <div>
                 <Label className="text-slate-300">VIN / Serial Number (Optional)</Label>
                 <Input
+                    data-testid="diagnostic-vin-input"
                   value={equipmentDetails.vin}
                   onChange={(e) => setEquipmentDetails({...equipmentDetails, vin: e.target.value.toUpperCase()})}
                   className="bg-slate-900 border-slate-700 text-white mt-2"
