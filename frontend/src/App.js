@@ -6,6 +6,8 @@ import ReferenceDiagrams from '@/pages/ReferenceDiagrams';
 import DiagramList from '@/pages/DiagramList';
 import ChatPage from '@/pages/ChatPage';
 import ConversationPage from '@/pages/ConversationPage';
+import QuickDiagnostics from '@/pages/QuickDiagnostics';
+import DiagnosticFlow from '@/pages/DiagnosticFlow';
 import { Toaster } from '@/components/ui/toaster';
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
         <Route path="/diagrams/:categoryId" element={<DiagramList />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/chat/:conversationId" element={<ConversationPage />} />
+        <Route path="/quick-diagnostics" element={<QuickDiagnostics />} />
+        <Route path="/quick-diagnostics/:flowId" element={<DiagnosticFlow />} />
       </Routes>
       <Toaster />
     </BrowserRouter>
