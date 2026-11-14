@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "id": "FP-FIRE-001",
+  "revision": 1,
+  "title": "Emergency fire pump \u2014 click / no crank",
+  "scope": "Conventional 12/24 V DC starter systems only. Not a crank-but-no-fire flow.",
+  "unknowns": [
+    "Pump/engine model",
+    "Battery arrangement and chemistry",
+    "OEM crank duty cycle",
+    "Wiring pins and wire colours",
+    "OEM voltage/current limits"
+  ],
+  "sources": [
+    {
+      "id": "case",
+      "type": "user_report",
+      "date": "2026-10-15",
+      "text": "Client reported three flat batteries in three days; starter clicked and became hot. Technician reported charger good, no external fault, engine free by hand, intermittent bench spinning and internal burning. Starter replaced; engine started. No measured voltages recorded."
+    },
+    {
+      "id": "delco",
+      "type": "manufacturer_generic",
+      "url": "https://www.delcoremy.com/the-latest/2014/march/tech-tip-diagnosing-starter-cranking-problems",
+      "text": "Generic starting-system sequence and less than 0.5 V total main-cable cranking voltage drop. Not an OEM specification for this pump."
+    }
+  ],
+  "safety": [
+    "Authorised fire-system impairment is in place, responsible site person informed, and alternate fire protection arranged. No active fire demand.",
+    "Competent authorised technician; OEM manual and safe test access available. Automatic/remote starting inhibited under site procedure.",
+    "PPE and ventilation in place; rotating parts clear; no fuel leak, smoke, hot/bulging battery, damaged cable or hot starter.",
+    "Battery arrangement and rated system voltage positively identified. No bridging terminals, bypassing interlocks or improvised bench tests."
+  ],
+  "stopText": "STOP: cease attempts; make safe under site procedure; notify responsible site person. Resolve the hazard or obtain OEM information before a fresh session. Never leave fire protection impaired without the responsible person\u2019s control.",
+  "start": "classify",
+  "nodes": {
+    "classify": {
+      "title": "Confirm the symptom",
+      "instruction": "Record asset/model, rated voltage, battery arrangement and observed symptom. If starter is hot, stop and allow cooling per OEM procedure before diagnosis.",
+      "terminal": false,
+      "choices": [
+        {
+          "label": "Click / no crank or intermittent crank",
+          "next": "battery"
+        },
+        {
+          "label": "Cranks normally but will not fire",
+          "next": "outside"
+        },
+        {
+          "label": "Smoke, heat, unexpected movement or unknown voltage",
+          "next": "stop"
+        }
+      ]
+    },
+    "battery": {
+      "title": "Test batteries first",
+      "instruction": "Inspect and test EACH battery using its chemistry, rating, temperature and manufacturer load-test procedure. Record rested voltage, loaded voltage, rating, test method and pass/fail. Charger indication alone does not prove battery health. OEM limits unknown: do not invent 12/24 V acceptance thresholds.",
+      "terminal": false,
+      "choices": [
+        {
+          "label": "All batteries pass documented test",
+          "next": "cables"
+        },
+        {
+          "label": "Any battery fails",
+          "next": "batteryFix"
+        },
+        {
+          "label": "Cannot verify safely / limits unavailable",
+          "next": "stop"
+        }
+      ]
+    },
+    "batteryFix": {
+      "title": "Battery fault requires correction",
+      "instruction": "Charge/replace failed batteries and correct connections under approved procedure. Repeated discharge still needs charger/parasitic-load investigation. Restart this flow with tested batteries; do not condemn starter from clicking alone.",
+      "terminal": true,
+      "choices": []
+    },
+    "cables": {
+      "title": "Measure loaded cable voltage drop",
+      "instruction": "Identify terminals from OEM documentation, not colour. During an authorised brief start attempt within OEM duty cycle: positive drop = battery-pack positive POST to starter B+; negative drop = starter OEM ground point to pack negative POST. Record both V and sum under comparable load. A zero reading with no current is inconclusive. Generic Delco reference: total <0.5 V; use pump/OEM specification where available. Not a universal 24 V limit.",
+      "terminal": false,
+      "choices": [
+        {
+          "label": "Passes applicable documented limit under load",
+          "next": "control"
+        },
+        {
+          "label": "Excessive drop",
+          "next": "cableFix"
+        },
+        {
+          "label": "No meaningful load / unknown terminals or limit",
+          "next": "stop"
+        }
+      ]
+    },
+    "cableFix": {
+      "title": "Repair the supply path",
+      "instruction": "Isolate all relevant power sources per OEM procedure. Inspect/repair loose, damaged or corroded cables and grounds. Restore safe test state, then restart and repeat loaded tests. Do not replace starter before confirming supply.",
+      "terminal": true,
+      "choices": []
+    },
+    "control": {
+      "title": "Check start command",
+      "instruction": "With OEM wiring and safe access, measure the documented starter command terminal relative to its specified return during START. Record terminal identifier, measured V and OEM required range. Pins, colours and acceptance voltage are unknown in this pack. Do not bridge the solenoid or defeat controller interlocks.",
+      "terminal": false,
+      "choices": [
+        {
+          "label": "Command and starter supply meet OEM requirements",
+          "next": "mechanical"
+        },
+        {
+          "label": "Command missing or outside OEM limits",
+          "next": "controlFix"
+        },
+        {
+          "label": "No diagram / unsafe / cannot establish specification",
+          "next": "stop"
+        }
+      ]
+    },
+    "controlFix": {
+      "title": "Control circuit requires OEM diagnosis",
+      "instruction": "Stop this starter flow. Trace documented controller output, protection and connections under approved fire-pump procedure. No guessed fuse, relay or pin assignments are supplied.",
+      "terminal": true,
+      "choices": []
+    },
+    "mechanical": {
+      "title": "Rule out mechanical lock safely",
+      "instruction": "Isolate automatic start, charger and all battery sources under OEM/site procedure; verify safe state. Only use the OEM barring method if trained and authorised; never use a fan blade. Record whether engine rotates normally. Starter removal and assessment are qualified-workshop tasks.",
+      "terminal": false,
+      "choices": [
+        {
+          "label": "Engine rotates normally by approved method",
+          "next": "starter"
+        },
+        {
+          "label": "Engine locked / abnormal resistance",
+          "next": "mechanicalStop"
+        },
+        {
+          "label": "Unable to verify safely",
+          "next": "stop"
+        }
+      ]
+    },
+    "mechanicalStop": {
+      "title": "Mechanical STOP",
+      "instruction": "Do not crank or force engine. Escalate engine/pump mechanical inspection; a locked load can overheat a healthy starter.",
+      "terminal": true,
+      "choices": []
+    },
+    "starter": {
+      "title": "Starter suspect \u2014 seek independent confirmation",
+      "instruction": "Supply, command and free engine support starter investigation, not automatic replacement. Isolate before removal. Have a qualified workshop perform the correct secured load/bench assessment to starter-maker specification. Record report and part identity. Free spinning alone does not prove loaded performance.",
+      "terminal": false,
+      "choices": [
+        {
+          "label": "Workshop confirms internal starter fault",
+          "next": "repair"
+        },
+        {
+          "label": "Pass / inconclusive / no report",
+          "next": "unresolved"
+        }
+      ]
+    },
+    "repair": {
+      "title": "Repair and prove operation",
+      "instruction": "Fit correct rated replacement under OEM procedure; record part and torque source. Reassemble guards and connections. Restore approved test state and run controller/manual-start and automatic-start acceptance tests with responsible personnel; check charger recovery and subsequent battery condition. Record results. Starting once does not resolve recurrent discharge or certify fire-system readiness.",
+      "terminal": false,
+      "choices": [
+        {
+          "label": "All required acceptance tests pass; responsible person accepts handback",
+          "next": "complete"
+        },
+        {
+          "label": "Starts but acceptance/discharge checks incomplete",
+          "next": "pending"
+        },
+        {
+          "label": "Still fails / new hazard",
+          "next": "stop"
+        }
+      ]
+    },
+    "complete": {
+      "title": "Diagnostic case complete \u2014 handback recorded",
+      "instruction": "Record responsible person, date and acceptance-test reference. Technician/site authority alone authorises return to service; this app issues no certification. Historical case: replacement restored starting, but discharge follow-up was not documented.",
+      "terminal": true,
+      "choices": []
+    },
+    "pending": {
+      "title": "Repair observed \u2014 handback pending",
+      "instruction": "Keep site impairment management active. Complete outstanding automatic-start, charger/battery and site acceptance checks before authorised handback.",
+      "terminal": true,
+      "choices": []
+    },
+    "unresolved": {
+      "title": "Unresolved \u2014 do not guess",
+      "instruction": "Record evidence and escalate to OEM/workshop. Do not label a starter faulty without supporting assessment.",
+      "terminal": true,
+      "choices": []
+    },
+    "outside": {
+      "title": "Outside this MVP",
+      "instruction": "Normal cranking requires a separate fuel/control/engine diagnostic flow. Record symptom and obtain the correct OEM procedure.",
+      "terminal": true,
+      "choices": []
+    },
+    "stop": {
+      "title": "STOP",
+      "instruction": "STOP: cease attempts; make safe under site procedure; notify responsible site person. Resolve the hazard or obtain OEM information before a fresh session. Never leave fire protection impaired without the responsible person\u2019s control.",
+      "terminal": true,
+      "choices": []
+    }
+  }
+}
